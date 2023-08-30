@@ -13,8 +13,8 @@ qpred(predictions, quantiles)
 \method{qpred}{data.frame}(predictions, quantiles)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idr} (output of
-\code{\link{predict.idrfit}}), or a \code{data.frame} of numeric variables. In
+\item{predictions}{either an object of class \code{idrafsd} (output of
+\code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 the latter case, quantiles are computed using the empirical distribution of
 the variables in \code{predictions}.}
 
@@ -50,5 +50,5 @@ predictions <- predict(fit, data = data.frame(HRES = c(2.5, 5, 10)))
 qpred(predictions, quantiles = 0.95)
 }
 \seealso{
-\code{\link{predict.idrfit}}, \code{\link{cdf}}, \code{\link{qscore}}
+\code{\link{predict.idrcal}}, \code{\link{cdf}}, \code{\link{qscore}}
 }

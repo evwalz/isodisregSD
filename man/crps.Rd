@@ -13,8 +13,8 @@ crps(predictions, y)
 \method{crps}{data.frame}(predictions, y)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idr} (output of
-\code{\link{predict.idrfit}}), or a \code{data.frame} of numeric variables. In
+\item{predictions}{either an object of class \code{idrafsd} (output of
+\code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 the latter case, the CRPS is computed using the empirical distribution of
 the variables in \code{predictions}.}
 
@@ -67,5 +67,5 @@ prediction, and estimation', Journal of the American Statistical Association
 102(477), 359-378
 }
 \seealso{
-\code{\link{predict.idrfit}}
+\code{\link{predict.idrcal}}
 }

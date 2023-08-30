@@ -8,10 +8,17 @@ The goal of isodisregAFSD is to ...
 
 ## Installation
 
-You can install the development version of isodisregAFSD like so:
+First install devtools package:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+install.packages("devtools")
+```
+
+Then you can install the development version of isodisregAFSD:
+
+``` r
+library(devtools)
+install_github("evwalz/isodisregAFSD")
 ```
 
 ## Example

@@ -13,8 +13,8 @@ cdf(predictions, thresholds)
 \method{cdf}{data.frame}(predictions, thresholds)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idr} (output of
-\code{\link{predict.idrfit}}), or a \code{data.frame} of numeric variables.
+\item{predictions}{either an object of class \code{idrafsd} (output of
+\code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables.
 In the latter case, the CDF is computed using the empirical distribution of
 the variables in \code{predictions}.}
 
@@ -36,7 +36,7 @@ forecasts) has jumps and \code{p} the corresponding CDF values, then for
 \code{x[i] <= x < x[i + 1]}, the CDF at \code{x} is \code{p[i]}.
 }
 \examples{
-
+## Example from IDR package: Adapt to idrafsd
 data("rain")
 
 ## Postprocess HRES forecast using data of 3 years
@@ -53,5 +53,5 @@ predictions <- predict(fit, data = data.frame(HRES = c(0, 0.5, 1)))
 1 - cdf(predictions, thresholds = 0)
 }
 \seealso{
-\code{\link{predict.idrfit}} \code{\link{qpred}}, \code{\link{bscore}}
+\code{\link{predict.idrcal}} \code{\link{qpred}}, \code{\link{bscore}}
 }

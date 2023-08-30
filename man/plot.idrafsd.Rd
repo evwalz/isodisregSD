@@ -19,8 +19,8 @@
 )
 }
 \arguments{
-\item{x}{object of class \code{idr} (output of
-\code{\link{predict.idrfit}}).}
+\item{x}{object of class \code{idrafsd} (output of
+\code{\link{predict.idrcal}}).}
 
 \item{index}{index of the prediction in \code{x} for which a plot is desired.}
 
@@ -67,5 +67,5 @@ pred <- predict(fit, data = data.frame(HRES = 1, CTR = 0))
 plot(pred)
 }
 \seealso{
-\code{\link{predict.idrfit}}
+\code{\link{predict.idrcal}}
 }

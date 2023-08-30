@@ -7,8 +7,8 @@
 #' @usage
 #' cdf(predictions, thresholds)
 #'
-#' @param predictions either an object of class \code{idr} (output of
-#'   \code{\link{predict.idrfit}}), or a \code{data.frame} of numeric variables.
+#' @param predictions either an object of class \code{idrafsd} (output of
+#'   \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables.
 #'   In the latter case, the CDF is computed using the empirical distribution of
 #'   the variables in \code{predictions}.
 #' @param thresholds numeric vector of thresholds at which the CDF will be
@@ -25,12 +25,12 @@
 #' one column for each threshold.
 #'
 #' @seealso
-#' \code{\link{predict.idrfit}} \code{\link{qpred}}, \code{\link{bscore}}
+#' \code{\link{predict.idrcal}} \code{\link{qpred}}, \code{\link{bscore}}
 #'
 #' @export
 #'
 #' @examples
-#'
+#' ## Example from IDR package: Adapt to idrafsd
 #' data("rain")
 #'
 #' ## Postprocess HRES forecast using data of 3 years
@@ -95,8 +95,8 @@ cdf.data.frame <- function(predictions, thresholds) {
 #' @usage
 #' qpred(predictions, quantiles)
 #'
-#' @param predictions either an object of class \code{idr} (output of
-#'   \code{\link{predict.idrfit}}), or a \code{data.frame} of numeric variables. In
+#' @param predictions either an object of class \code{idrafsd} (output of
+#'   \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 #'   the latter case, quantiles are computed using the empirical distribution of
 #'   the variables in \code{predictions}.
 #' @param quantiles numeric vector of desired quantiles.
@@ -111,7 +111,7 @@ cdf.data.frame <- function(predictions, thresholds) {
 #' A matrix of forecasts for the desired quantiles, one column per quantile.
 #'
 #' @seealso
-#' \code{\link{predict.idrfit}}, \code{\link{cdf}}, \code{\link{qscore}}
+#' \code{\link{predict.idrcal}}, \code{\link{cdf}}, \code{\link{qscore}}
 #'
 #' @export
 #'
@@ -134,7 +134,7 @@ qpred <- function(predictions, quantiles) {
     UseMethod("qpred")
 }
 
-#' qpred method for class 'idr'
+#' qpred method for class 'idrafsd'
 #'
 #' @method qpred idrafsd
 #'
@@ -271,7 +271,7 @@ qscore <- function(predictions, quantiles, y) {
 #' @return A matrix of the Brier scores for the desired thresholds, one column
 #' per threshold.
 #'
-#' @seealso \code{\link{predict.idrfit}}, \code{\link{cdf}}
+#' @seealso \code{\link{predict.idrcal}}, \code{\link{cdf}}
 #'
 #' @references
 #' Gneiting, T. and Raftery, A. E. (2007), 'Strictly proper scoring rules,
@@ -322,8 +322,8 @@ bscore <- function(predictions, thresholds, y) {
 #'
 #' @usage crps(predictions, y)
 #'
-#' @param predictions either an object of class \code{idr} (output of
-#'   \code{\link{predict.idrfit}}), or a \code{data.frame} of numeric variables. In
+#' @param predictions either an object of class \code{idrafsd} (output of
+#'   \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 #'   the latter case, the CRPS is computed using the empirical distribution of
 #'   the variables in \code{predictions}.
 #' @param y a numeric vector of obervations of the same length as the number of
@@ -336,7 +336,7 @@ bscore <- function(predictions, thresholds, y) {
 #'
 #' @return A vector of CRPS values.
 #'
-#' @seealso \code{\link{predict.idrfit}}
+#' @seealso \code{\link{predict.idrcal}}
 #'
 #' @references
 #' Jordan A., Krueger F., Lerch S. (2018). "Evaluating Probabilistic
@@ -377,7 +377,7 @@ crps <- function(predictions, y) {
     UseMethod("crps")
 }
 
-#' crps method for class 'irdpred'
+#' crps method for class 'idrafsd'
 #'
 #' @method crps idrafsd
 #' @rdname crps
@@ -426,8 +426,8 @@ crps.data.frame <- function(predictions, y) {
 #'
 #' @usage pit(predictions, y, randomize = TRUE, seed = NULL)
 #'
-#' @param predictions either an object of class \code{idr} (output of
-#'   \code{\link{predict.idrfit}}), or a \code{data.frame} of numeric variables. In
+#' @param predictions either an object of class \code{idrafsd} (output of
+#'   \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 #'   the latter case, the PIT is computed using the empirical distribution of
 #'   the variables in \code{predictions}.
 #' @param y a numeric vector of obervations of the same length as the number of
@@ -440,7 +440,7 @@ crps.data.frame <- function(predictions, y) {
 #'
 #' @return Vector of PIT values.
 #'
-#' @seealso \code{\link{predict.idrfit}}
+#' @seealso \code{\link{predict.idrcal}}
 #'
 #' @references
 #'
@@ -483,7 +483,7 @@ pit <- function(predictions, y, randomize = TRUE, seed = NULL) {
 }
 
 
-#' pit method for class 'idr'
+#' pit method for class 'idrafsd'
 #'
 #' @method pit idrafsd
 #' @rdname pit
@@ -566,8 +566,8 @@ pit.data.frame <- function(predictions, y, randomize = TRUE, seed = NULL) {
 #'
 #' @method plot idrafsd
 #'
-#' @param x object of class \code{idr} (output of
-#'   \code{\link{predict.idrfit}}).
+#' @param x object of class \code{idrafsd} (output of
+#'   \code{\link{predict.idrcal}}).
 #' @param index index of the prediction in \code{x} for which a plot is desired.
 #' @param bounds whether the bounds should be plotted or not (see
 #'   \code{\link{predict.idrfit}} for details about the meaning of the bounds).
@@ -584,7 +584,7 @@ pit.data.frame <- function(predictions, y, randomize = TRUE, seed = NULL) {
 #' @return
 #' The data based on which the plot is drawn (returned invisible).
 #'
-#' @seealso \code{\link{predict.idrfit}}
+#' @seealso \code{\link{predict.idrcal}}
 #'
 #' @export
 #' @importFrom stats stepfun

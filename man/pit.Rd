@@ -13,8 +13,8 @@ pit(predictions, y, randomize = TRUE, seed = NULL)
 \method{pit}{data.frame}(predictions, y, randomize = TRUE, seed = NULL)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idr} (output of
-\code{\link{predict.idrfit}}), or a \code{data.frame} of numeric variables. In
+\item{predictions}{either an object of class \code{idrafsd} (output of
+\code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 the latter case, the PIT is computed using the empirical distribution of
 the variables in \code{predictions}.}
 
@@ -68,5 +68,5 @@ forecasts, calibration and sharpness', Journal of the Royal Statistical
 Society: Series B (Statistical Methodology) 69(2), 243-268.
 }
 \seealso{
-\code{\link{predict.idrfit}}
+\code{\link{predict.idrcal}}
 }

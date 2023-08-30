@@ -7,8 +7,8 @@
 qscore(predictions, quantiles, y)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idr} (output of
-\code{\link{predict.idrfit}}), or a \code{data.frame} of numeric variables. In
+\item{predictions}{either an object of class \code{idrafsd} (output of
+\code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 the latter case, quantiles are computed using the empirical distribution of
 the variables in \code{predictions}.}
 

@@ -27,3 +27,4 @@ X[k, ]} in AFSD and \code{x[i, ] >= X[j, ] >= X[k, ]} holds for no
 and \code{x[i ,] <= X[j, ] <= X[k, ]} holds for no \code{j}
 different from \code{k}.
 }
+\keyword{internal}

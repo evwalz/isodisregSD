@@ -335,8 +335,7 @@ trReduc <- function(paths, n) {
 #'
 #'
 #'
-
-
+#' @keywords internal
 
 neighborPoints <- function(x, X,eps, Ord) {
 

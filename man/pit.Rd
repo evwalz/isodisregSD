@@ -2,13 +2,13 @@
 % Please edit documentation in R/evaluation.R
 \name{pit}
 \alias{pit}
-\alias{pit.idrafsd}
+\alias{pit.idrsd}
 \alias{pit.data.frame}
 \title{Probability integral transform (PIT)}
 \usage{
 pit(predictions, y, randomize = TRUE, seed = NULL)
 
-\method{pit}{idrafsd}(predictions, y, randomize = TRUE, seed = NULL)
+\method{pit}{idrsd}(predictions, y, randomize = TRUE, seed = NULL)
 
 \method{pit}{data.frame}(predictions, y, randomize = TRUE, seed = NULL)
 }

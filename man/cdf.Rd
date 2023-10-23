@@ -2,13 +2,13 @@
 % Please edit documentation in R/evaluation.R
 \name{cdf}
 \alias{cdf}
-\alias{cdf.idrafsd}
+\alias{cdf.idrsd}
 \alias{cdf.data.frame}
 \title{Cumulative distribution function (CDF) of IDR or raw forecasts}
 \usage{
 cdf(predictions, thresholds)
 
-\method{cdf}{idrafsd}(predictions, thresholds)
+\method{cdf}{idrsd}(predictions, thresholds)
 
 \method{cdf}{data.frame}(predictions, thresholds)
 }
@@ -36,7 +36,7 @@ forecasts) has jumps and \code{p} the corresponding CDF values, then for
 \code{x[i] <= x < x[i + 1]}, the CDF at \code{x} is \code{p[i]}.
 }
 \examples{
-## Example from IDR package: Adapt to idrafsd
+## Example from IDR package: Adapt to idrsd
 data("rain")
 
 ## Postprocess HRES forecast using data of 3 years

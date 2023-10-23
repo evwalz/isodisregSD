@@ -1,71 +1,6 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// [[Rcpp::export]]
-NumericMatrix new_func(NumericMatrix X, double eps) {
-    int m = X.nrow();
-    int d = X.ncol();
-    NumericMatrix M(m, m);
-    NumericVector vec(2*d);
-    NumericVector x1(d);
-    NumericVector x2(d);
-
-    M(m-1, m-1) = 1;
-    for (int i= 0; i < (m-1); i++) {
-        M(i, i) = 1;
-        for (int j = (i+1); j < m; j++) {
-            NumericVector vec(2*d);
-            for (int k = 0; k < d; k++) {
-                vec[k] = x1[k] = X(i, k);
-                vec[d+ k] = x2[k] = X(j, k);
-            }
-
-            std::sort( vec.begin(), vec.end() );
-            vec.erase( std::unique( vec.begin(), vec.end() ), vec.end() );
-
-            int nobs = vec.size();
-            NumericVector F1(nobs);
-            NumericVector F2(nobs);
-            std::sort(x1.begin(), x1.end());
-            std::sort(x2.begin(), x2.end());
-            for (int l = 0; l < nobs; ++l) {
-                F1[l] =  (std::upper_bound(x1.begin(), x1.end(), vec[l]) - x1.begin());
-                F2[l] =  (std::upper_bound(x2.begin(), x2.end(), vec[l]) - x2.begin());
-            }
-
-            F1 = F1 / ((double) nobs);
-            F2 = F2 / ((double) nobs);
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (nobs-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(vec[k+1] - vec[k]);
-                if (F2[k] > F1[k]) {
-                    sum_s += (F2[k] - F1[k])*(vec[k+1] - vec[k]);
-                }
-            }
-            if (sum_s - eps*sum_all <= 1e-9) {
-                M(i, j) = 1;
-            }
-            if (M(i, j) == 0) {
-                sum_all = 0;
-                sum_s = 0;
-                for (int k = 0; k< (nobs-1); k++) {
-                    sum_all += std::abs(F1[k] - F2[k])*(vec[k+1] - vec[k]);
-                    if (F1[k] > F2[k]) {
-                        sum_s += (F1[k] - F2[k])*(vec[k+1] - vec[k]);
-                    }
-                }
-
-                if (sum_s - sum_all * eps <= 1e-9) {
-                    M(j, i) = 1;
-                }
-            }
-
-        }
-    }
-    return M;
-}
-
 
 // [[Rcpp::export]]
 NumericMatrix new_func_sd(NumericMatrix X) {
@@ -212,75 +147,6 @@ List new_func_eps(NumericMatrix X) {
     return list_d_mat;
 }
 
-// [[Rcpp::export]]
-NumericMatrix normal_comp(NumericMatrix X, double eps) {
-    int m = X.nrow();
-    NumericMatrix M(m, m);
-    M(m-1, m-1) = 1;
-    for (int i= 0; i < (m-1); i++) {
-        M(i, i) = 1;
-        for (int j = (i+1); j < m; j++) {
-            if (std::abs(X(i, 1) - X(j, 1)) < 1e-9){
-                if (X(i, 0) >= X(j, 0)){
-                    M(j, i) = 1;
-                }
-                if (X(j, 0) >= X(i, 0)) {
-                    M(i, j) = 1;
-                }
-            }
-            else if (X(j, 1) > X(i, 1)){
-                static const float inv_sqrt_2pi = 0.3989422804014327;
-                double sigmu1;
-                double sigmu2;
-                sigmu1 = X(i, 0)*X(j, 1);
-                sigmu2 = X(j, 0)*X(i, 1);
-                double v = (sigmu1 - sigmu2) / (X(j, 1) - X(i, 1));
-
-                double a = (v - X(i,0)) / X(i, 1);
-                double b = (v - X(j,0)) / X(j, 1);
-                double g2 = inv_sqrt_2pi / X(j, 1) * std::exp(-0.5f * b * b);
-                double f1 = inv_sqrt_2pi / X(i, 1) * std::exp(-0.5f * a * a);
-                double G2 = R::pnorm(v,  X(j, 0),  X(j, 1), 1, 0);
-                double F1 = R::pnorm(v,  X(i, 0), X(i, 1), 1, 0);
-                double left = (1-2*eps)*(X(j, 1)*X(j, 1)*g2- X(i, 1)*X(i, 1)*f1);
-
-                if (left <= (X(i, 0) - X(j, 0))*(eps*(2*F1-1) + (1-F1))){
-                    M(j, i) = 1;
-                }
-
-                if (left <= (X(j, 0) - X(i, 0))*(eps + (1-2*eps)*G2)) {
-                    M(i,j) = 1;
-                }
-            }
-
-            else if (X(i, 1) > X(j, 1)) {
-                static const float inv_sqrt_2pi = 0.3989422804014327;
-                double sigmu1;
-                double sigmu2;
-                sigmu1 = X(i, 0)*X(j, 1);
-                sigmu2 = X(j, 0)*X(i, 1);
-                double v = (sigmu1 - sigmu2) / (X(j, 1) - X(i, 1));
-                double a = (v - X(i,0)) / X(i, 1);
-                double b = (v - X(j,0)) / X(j, 1);
-                double g2 = inv_sqrt_2pi / X(j, 1) * std::exp(-0.5f * b * b);
-                double f1 = inv_sqrt_2pi / X(i, 1) * std::exp(-0.5f * a * a);
-                double G2 = R::pnorm(v,  X(j, 0),  X(j, 1), 1, 0);
-                double F1 = R::pnorm(v, X(i, 0), X(i, 1), 1, 0);
-                double left = (1-2*eps)*(X(i, 1)*X(i, 1)*f1- X(j, 1)*X(j, 1)*g2);
-
-                if (left <= (X(i, 0) - X(j, 0))*(eps + (1-2*eps)*F1)){
-                    M(j, i) = 1;
-                }
-
-                if (left <= (X(j, 0) - X(i, 0))*(eps*(2*G2-1) + (1-G2))) {
-                    M(i,j) = 1;
-                }
-            }
-        }
-    }
-
-    return M;
-}
 
 // [[Rcpp::export]]
 List normal_comp_eps(NumericMatrix X) {
@@ -392,88 +258,49 @@ NumericMatrix normal_comp_sd(NumericMatrix X) {
     return M;
 }
 
-
 // [[Rcpp::export]]
-List indx_norm(NumericMatrix X, NumericMatrix x, double eps) {
-    int mX = X.nrow();
-    int mx = x.nrow();
-
-    IntegerMatrix smaller_indx(mx, mX);
-    IntegerMatrix greater_indx(mx, mX);
-
-    List ret;
-
-
-    for (int i = 0; i < mx; i++) {
-        double sigma1;
-        double mu1;
-        sigma1 = x(i, 1);
-        mu1 = x(i, 0);
-        for (int j = 0; j < mX; j++) {
-            double sigma2;
-            double mu2;
-            sigma2 = X(j,1);
-            mu2 = X(j,0);
-
-            if (std::abs(sigma2 - sigma1) < 1e-9){
-                if (mu1 >= mu2){
-                    smaller_indx(i, j) = 1;
+NumericMatrix normal_comp_sd_ab(NumericMatrix X, double a, double b) {
+    int m = X.nrow();
+    NumericMatrix M(m, m);
+    M(m-1, m-1) = 1;
+    for (int i= 0; i < (m-1); i++) {
+        M(i, i) = 1;
+        for (int j = (i+1); j < m; j++) {
+            if (std::abs(X(i, 1) - X(j, 1)) < 1e-9){
+                if (X(i, 0) >= X(j, 0)){
+                    M(j, i) = 1;
                 }
-                if (mu2 >= mu1){
-                    greater_indx(i, j) = 1;
+                if (X(j, 0) >= X(i, 0)) {
+                    M(i, j) = 1;
                 }
             }
-            else if (sigma2 > sigma1){
-                static const float inv_sqrt_2pi = 0.3989422804014327;
-                double sigmu1 = mu1 * sigma2;
-                double sigmu2 = mu2 * sigma1;
-                double v = (sigmu1 - sigmu2) / (sigma2 - sigma1);
+            else {
+                double diff = X(j, 1) - X(i, 1);
+                double num = X(i, 0)*X(j, 1) - X(j, 0)*X(i, 1);
+                double test = num / diff;
 
-                double a = (v - mu1) / sigma1;
-                double b = (v - mu2) / sigma2;
-                double g2 = inv_sqrt_2pi / sigma2 * std::exp(-0.5f * b * b);
-                double f1 = inv_sqrt_2pi / sigma1 * std::exp(-0.5f * a * a);
-                double G2 = R::pnorm(v,  mu2,  sigma2, 1, 0);
-                double F1 = R::pnorm(v,  mu1, sigma1, 1, 0);
-                double left = (1-2*eps)*(sigma2*sigma2*g2- sigma1*sigma1*f1);
-
-                if (left <= (mu1 - mu2)*(eps*(2*F1-1) + (1-F1))){
-                    smaller_indx(i, j) = 1;
+                if (test < a){
+                    if (X(i, 0) >= X(j, 0)){
+                        M(j, i) = 1;
+                    }
+                    if (X(j, 0) >= X(i, 0)) {
+                        M(i, j) = 1;
+                    }
                 }
-                if (left <= (mu2 - mu1)*(eps + (1-2*eps)*G2)) {
-                    greater_indx(i, j) = 1;
-                }
-            }
-
-            else if (sigma1 > sigma2) {
-                static const float inv_sqrt_2pi = 0.3989422804014327;
-                double sigmu1 = mu1 * sigma2;
-                double sigmu2 = mu2 * sigma1;
-                double v = (sigmu1 - sigmu2) / (sigma2 - sigma1);
-
-                double a = (v - mu1) / sigma1;
-                double b = (v - mu2) / sigma2;
-                double g2 = inv_sqrt_2pi / sigma2 * std::exp(-0.5f * b * b);
-                double f1 = inv_sqrt_2pi / sigma1 * std::exp(-0.5f * a * a);
-                double G2 = R::pnorm(v,  mu2,  sigma2, 1, 0);
-                double F1 = R::pnorm(v,  mu1, sigma1, 1, 0);
-                double left = (1-2*eps)*(sigma1*sigma1*f1- sigma2*sigma2*g2);
-
-                if (left <= (mu1 - mu2)*(eps + (1-2*eps)*F1)){
-                    smaller_indx(i, j) = 1;
-
-                }
-
-                if (left <= (mu2 - mu1)*(eps*(2*G2-1) + (1-G2))) {
-                    greater_indx(i, j) = 1;
+                if (test > b){
+                    if (X(i, 0) >= X(j, 0)){
+                        M(j, i) = 1;
+                    }
+                    if (X(j, 0) >= X(i, 0)) {
+                        M(i, j) = 1;
+                    }
                 }
             }
         }
     }
-    ret["smaller"] = smaller_indx;
-    ret["greater"] = greater_indx;
-    return ret;
+    return M;
 }
+
 
 
 // [[Rcpp::export]]
@@ -508,73 +335,6 @@ List indx_norm_sd(NumericMatrix X, NumericMatrix x) {
             }
         }
     }
-    ret["smaller"] = smaller_indx;
-    ret["greater"] = greater_indx;
-    return ret;
-}
-
-// [[Rcpp::export]]
-List new_func2(NumericMatrix X, NumericMatrix x, double eps) {
-    int mX = X.nrow();
-    int d = X.ncol();
-    int mx = x.nrow();
-
-    IntegerMatrix smaller_indx(mx, mX);
-    IntegerMatrix greater_indx(mx, mX);
-    NumericVector vec(2*d);
-    NumericVector x1(d);
-    NumericVector x2(d);
-    List ret;
-
-
-    for (int i = 0; i < mx; i++) {
-        for (int j = 0; j < mX; j++) {
-            NumericVector vec(2*d);
-            for (int k = 0; k < d; k++) {
-                vec[k] = x1[k] = x(i, k);
-                vec[k + d] = x2[k] = X(j, k);
-            }
-            std::sort( vec.begin(), vec.end() );
-            vec.erase( std::unique( vec.begin(), vec.end() ), vec.end() );
-
-            int nobs = vec.size();
-            NumericVector F1(nobs);
-            NumericVector F2(nobs);
-            std::sort(x1.begin(), x1.end());
-            std::sort(x2.begin(), x2.end());
-            for (int l = 0; l < nobs; ++l) {
-                F1[l] =  (std::upper_bound(x1.begin(), x1.end(), vec[l]) - x1.begin());
-                F2[l] =  (std::upper_bound(x2.begin(), x2.end(), vec[l]) - x2.begin());
-            }
-
-            F1 = F1 / ((double) nobs);
-            F2 = F2 / ((double) nobs);
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (nobs-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(vec[k+1] - vec[k]);
-                if (F2[k] > F1[k]) {
-                    sum_s += (F2[k] - F1[k])*(vec[k+1] - vec[k]);
-                }
-            }
-            if (sum_s - eps*sum_all <= 1e-9) {
-                greater_indx(i, j) = 1;
-            }
-
-            sum_all = 0;
-            sum_s = 0;
-            for (int k = 0; k< (nobs-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(vec[k+1] - vec[k]);
-                if (F1[k] > F2[k]) {
-                    sum_s += (F1[k] - F2[k])*(vec[k+1] - vec[k]);
-                }
-            }
-            if (sum_s - sum_all * eps <= 1e-9) {
-                smaller_indx(i, j) = 1;
-            }
-        }
-    }
-
     ret["smaller"] = smaller_indx;
     ret["greater"] = greater_indx;
     return ret;
@@ -644,50 +404,6 @@ List new_func2_sd(NumericMatrix X, NumericMatrix x) {
     return ret;
 }
 
-// [[Rcpp::export]]
-List new_func_single_grid(NumericMatrix X, NumericMatrix x, NumericVector vec, double eps) {
-    int mX = X.nrow();
-    int d = X.ncol();
-    int mx = x.nrow();
-
-    IntegerMatrix smaller_indx(mx, mX);
-    IntegerMatrix greater_indx(mx, mX);
-
-    List ret;
-
-    for (int i = 0; i < mx; i++){
-        for (int j = 0; j < mX; j++){
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(x(i, k) - X(j, k))*(vec[k+1] - vec[k]);
-                if (X(j, k) > x(i, k)) {
-                    sum_s += (X(j, k) - x(i, k))*(vec[k+1] - vec[k]);
-                }
-            }
-            if (sum_s - eps*sum_all <= 1e-9) {
-                greater_indx(i, j) = 1;
-            }
-
-            sum_all = 0;
-            sum_s = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(x(i, k) - X(j, k))*(vec[k+1] - vec[k]);
-                if (x(i, k) > X(j, k)) {
-                    sum_s += (x(i, k) - X(j, k))*(vec[k+1] - vec[k]);
-                }
-            }
-            if (sum_s - sum_all * eps <= 1e-9) {
-                smaller_indx(i, j) = 1;
-            }
-
-        }
-    }
-
-    ret["smaller"] = smaller_indx;
-    ret["greater"] = greater_indx;
-    return ret;
-}
 
 // [[Rcpp::export]]
 List new_func_single_grid_sd(NumericMatrix X, NumericMatrix x, NumericVector vec) {
@@ -723,142 +439,6 @@ List new_func_single_grid_sd(NumericMatrix X, NumericMatrix x, NumericVector vec
                 smaller_indx(i, j) = 1;
             }
 
-        }
-    }
-
-    ret["smaller"] = smaller_indx;
-    ret["greater"] = greater_indx;
-    return ret;
-}
-
-// [[Rcpp::export]]
-List new_func_single_grid_rememeber(NumericMatrix X, NumericMatrix x, NumericVector vec, double eps) {
-    int mX = X.nrow();
-    int d = X.ncol();
-    int mx = x.nrow();
-
-    IntegerMatrix smaller_indx(mx, mX);
-    IntegerMatrix greater_indx(mx, mX);
-
-    List ret;
-
-    for (int i = 0; i < mx; i++){
-        for (int j = 0; j < mX; j++){
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(x(i, k) - X(j, k))*(vec[k+1] - vec[k]);
-                if (X(j, k) > x(i, k)) {
-                    sum_s += (X(j, k) - x(i, k))*(vec[k+1] - vec[k]);
-                }
-            }
-            if (sum_s - eps*sum_all <= 1e-9) {
-                greater_indx(i, j) = 1;
-            }
-            if (greater_indx(i, j) == 0) {
-                sum_all = 0;
-                sum_s = 0;
-                for (int k = 0; k< (d-1); k++) {
-                    sum_all += std::abs(x(i, k) - X(j, k))*(vec[k+1] - vec[k]);
-                    if (x(i, k) > X(j, k)) {
-                        sum_s += (x(i, k) - X(j, k))*(vec[k+1] - vec[k]);
-                    }
-                }
-                if (sum_s - sum_all * eps <= 1e-9) {
-                    smaller_indx(i, j) = 1;
-                }
-            }
-
-        }
-    }
-
-    ret["smaller"] = smaller_indx;
-    ret["greater"] = greater_indx;
-    return ret;
-}
-
-// [[Rcpp::export]]
-List new_func_mat(NumericMatrix X, NumericMatrix x, NumericVector gridx, NumericVector gridX, double eps) {
-    int mX = X.nrow();
-    int dX = X.ncol();
-    int dx = x.ncol();
-    int mx = x.nrow();
-    int dXx = dX + dx;
-
-    IntegerMatrix smaller_indx(mx, mX);
-    IntegerMatrix greater_indx(mx, mX);
-
-    List ret;
-    NumericVector vec(dXx);
-    for (int k = 0; k < dx; k++) {
-        vec[k] = gridx[k];
-    }
-    for (int k = dx; k < dXx; k++){
-        vec[k] = gridX[k-dx];
-    }
-
-    std::sort( vec.begin(), vec.end() );
-    vec.erase( std::unique( vec.begin(), vec.end() ), vec.end() );
-    int d = vec.size();
-
-    NumericMatrix F1(mx, d);
-    NumericMatrix F2(mX, d);
-
-    for(int k = 0; k < d; k++){
-        int indx1 = 0;
-        int indx2 = 0;
-        while (vec[k] >= gridx[indx1] && indx1 < dx){
-            indx1 +=1;
-        }
-        if (indx1 == 0){
-            for (int i = 0; i < mx; i++){
-                F1(i, k) = 0;
-            }
-        } else {
-            for (int i = 0; i < mx; i++){
-                F1(i, k) = x(i,(indx1-1));
-            }
-        }
-        while (vec[k] >= gridX[indx2] && indx2 < dX){
-            indx2 +=1;
-        }
-        if (indx2 == 0){
-            for (int i = 0; i < mX; i++){
-                F2(i, k) = 0;
-            }
-        } else {
-            for (int i = 0; i < mX; i++){
-                F2(i, k) = X(i, (indx2-1));
-            }
-        }
-    }
-
-    for (int i = 0; i < mx; i++){
-        for (int j = 0; j < mX; j++){
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1(i, k) - F2(j, k))*(vec[k+1] - vec[k]);
-                if (F2(j, k) > F1(i, k)) {
-                    sum_s += (F2(j, k) - F1(i, k))*(vec[k+1] - vec[k]);
-                }
-            }
-
-            if (sum_s -  eps*sum_all <= 1e-9) {
-                greater_indx(i, j) = 1;
-            }
-
-            sum_all = 0;
-            sum_s = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1(i, k) - F2(j, k))*(vec[k+1] - vec[k]);
-                if (F1(i, k) > F2(j, k)) {
-                    sum_s += (F1(i, k) - F2(j, k))*(vec[k+1] - vec[k]);
-                }
-            }
-            if (sum_s - sum_all * eps <= 1e-9) {
-                smaller_indx(i, j) = 1;
-            }
         }
     }
 
@@ -952,88 +532,6 @@ List new_func_mat_sd(NumericMatrix X, NumericMatrix x, NumericVector gridx, Nume
     return ret;
 }
 
-// [[Rcpp::export]]
-List new_func_mat_list(List X, NumericMatrix x, NumericVector gridx, List gridX, double eps) {
-    int mX = X.size();
-    int mx = x.nrow();
-    int t_l1 = gridx.size();
-
-    IntegerMatrix smaller_indx(mx, mX);
-    IntegerMatrix greater_indx(mx, mX);
-
-    List ret;
-
-    for (int i = 0; i < mx; i++){
-        for (int j = 0; j < mX; j++){
-            NumericVector t2 = as<NumericVector>(gridX[j]);
-            NumericVector x2 = as<NumericVector>(X[j]);
-            int t_l2 = t2.size();
-            int dim_thresh = t_l1 + t_l2;
-            NumericVector thresholds(dim_thresh);
-            for (int l = 0; l < t_l1; l++){
-                thresholds[l] = gridx[l];
-            }
-            for (int l = t_l1; l < dim_thresh; l++){
-                thresholds[l] = t2[(l-t_l1)];
-            }
-            std::sort( thresholds.begin(), thresholds.end() );
-            thresholds.erase( std::unique( thresholds.begin(), thresholds.end() ), thresholds.end() );
-            int d = thresholds.size();
-
-            NumericVector F1(d);
-            NumericVector F2(d);
-
-            for(int k = 0; k < d; k++){
-                int indx1 = 0;
-                int indx2 = 0;
-                while (thresholds[k] >= gridx[indx1] && indx1 < t_l1){
-                    indx1 +=1;
-                }
-                if (indx1 == 0){
-                    F1[k] = 0;
-                } else {
-                    F1[k] = x(i, (indx1-1));
-                }
-                while (thresholds[k] >= t2[indx2] && indx2 < t_l2){
-                    indx2 +=1;
-                }
-                if (indx2 == 0){
-                    F2[k] = 0;
-                } else {
-                    F2[k] = x2[indx2-1];
-                }
-            }
-
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                if (F2[k] > F1[k]) {
-                    sum_s += (F2[k] - F1[k])*(thresholds[k+1] - thresholds[k]);
-                }
-            }
-            if (sum_s - eps*sum_all <= 1e-9) {
-                greater_indx(i, j) = 1;
-            }
-
-            sum_all = 0;
-            sum_s = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                if (F1[k] > F2[k]) {
-                    sum_s += (F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                }
-            }
-            if (sum_s - sum_all * eps <= 1e-9) {
-                smaller_indx(i, j) = 1;
-            }
-        }
-    }
-
-    ret["smaller"] = smaller_indx;
-    ret["greater"] = greater_indx;
-    return ret;
-}
 
 // [[Rcpp::export]]
 List new_func_mat_list_sd(List X, NumericMatrix x, NumericVector gridx, List gridX) {
@@ -1104,196 +602,6 @@ List new_func_mat_list_sd(List X, NumericMatrix x, NumericVector gridx, List gri
                 }
             }
             if (test2 == 1) {
-                smaller_indx(i, j) = 1;
-            }
-        }
-    }
-
-    ret["smaller"] = smaller_indx;
-    ret["greater"] = greater_indx;
-    return ret;
-}
-
-// [[Rcpp::export]]
-List new_func_list(List X, List x, List gridx, List gridX, double eps) {
-    int mX = X.size();
-    int mx = x.size();
-
-    IntegerMatrix smaller_indx(mx, mX);
-    IntegerMatrix greater_indx(mx, mX);
-
-    List ret;
-
-    for (int i = 0; i < mx; i++) {
-        NumericVector x1 = as<NumericVector>(x[i]);
-        NumericVector t1 = as<NumericVector>(gridx[i]);
-        int t_l1 = t1.size();
-
-        for (int j = 0; j < mX; j++) {
-            NumericVector x2 = as<NumericVector>(X[j]);
-            NumericVector t2 = as<NumericVector>(gridX[j]);
-            int t_l2 = t2.size();
-            int dim_thresh = t_l1 + t_l2;
-            NumericVector thresholds(dim_thresh);
-
-            for (int l = 0; l < t_l1; l++) {
-                thresholds[l] = t1[l];
-            }
-            for (int l = t_l1; l < dim_thresh; l++) {
-                thresholds[l] = t2[l - t_l1];
-            }
-
-            std::sort(thresholds.begin(), thresholds.end());
-            thresholds.erase(std::unique(thresholds.begin(), thresholds.end()), thresholds.end());
-            int d = thresholds.size();
-
-            NumericVector F1(d);
-            NumericVector F2(d);
-
-            for (int k = 0; k < d; k++) {
-                int indx1 = 0;
-                int indx2 = 0;
-
-                while (indx1 < t_l1 && thresholds[k] >= t1[indx1]) {
-                    indx1 += 1;
-                }
-
-                if (indx1 == 0) {
-                    F1[k] = 0;
-                } else {
-                    F1[k] = x1[indx1 - 1];
-                }
-
-                while (indx2 < t_l2 && thresholds[k] >= t2[indx2]) {
-                    indx2 += 1;
-                }
-
-                if (indx2 == 0) {
-                    F2[k] = 0;
-                } else {
-                    F2[k] = x2[indx2 - 1];
-                }
-            }
-
-            double sum_s = 0;
-            double sum_all = 0;
-
-            for (int k = 0; k < (d - 1); k++) {
-                double interval_size = thresholds[k + 1] - thresholds[k];
-                double abs_diff = std::abs(F1[k] - F2[k]);
-                sum_all += abs_diff * interval_size;
-
-                if (F2[k] > F1[k]) {
-                    sum_s += (F2[k] - F1[k]) * interval_size;
-                }
-            }
-
-            if (sum_s  - eps * sum_all <= 1e-9) {
-                greater_indx(i, j) = 1;
-            }
-
-            sum_s = 0;
-            sum_all = 0;
-
-            for (int k = 0; k < (d - 1); k++) {
-                double interval_size = thresholds[k + 1] - thresholds[k];
-                double abs_diff = std::abs(F1[k] - F2[k]);
-                sum_all += abs_diff* interval_size;
-
-                if (F1[k] > F2[k]) {
-                    sum_s += (F1[k] - F2[k]) * interval_size;
-                }
-            }
-
-            if (sum_s  - eps * sum_all <=   1e-9) {
-                smaller_indx(i, j) = 1;
-            }
-        }
-    }
-
-    ret["smaller"] = smaller_indx;
-    ret["greater"] = greater_indx;
-    return ret;
-}
-
-
-// [[Rcpp::export]]
-List new_func_list_back(List X, List x, List gridx, List gridX, double eps) {
-    int mX = X.size();
-    int mx = x.size();
-
-
-    IntegerMatrix smaller_indx(mx, mX);
-    IntegerMatrix greater_indx(mx, mX);
-
-    List ret;
-
-    for (int i = 0; i < mx; i++){
-        NumericVector x1 = as<NumericVector>(x[i]);
-        NumericVector t1 = as<NumericVector>(gridx[i]);
-        int t_l1 = t1.size();
-        for (int j = 0; j < mX; j++){
-            NumericVector x2 = as<NumericVector>(X[j]);
-            NumericVector t2 = as<NumericVector>(gridX[j]);
-            int t_l2 = t2.size();
-            int dim_thresh = t_l1 + t_l2;
-            NumericVector thresholds(dim_thresh);
-            for (int l = 0; l < t_l1; l++){
-                thresholds[l] = t1[l];
-            }
-            for (int l = t_l1; l < dim_thresh; l++){
-                thresholds[l] = t2[(l-t_l1)];
-            }
-            std::sort( thresholds.begin(), thresholds.end() );
-            thresholds.erase( std::unique( thresholds.begin(), thresholds.end() ), thresholds.end() );
-            int d = thresholds.size();
-
-            NumericVector F1(d);
-            NumericVector F2(d);
-
-            for(int k = 0; k < d; k++){
-                int indx1 = 0;
-                int indx2 = 0;
-                while (thresholds[k] >= t1[indx1] && indx1 < t_l1){
-                    indx1 +=1;
-                }
-                if (indx1 == 0){
-                    F1[k] = 0;
-                } else {
-                    F1[k] = x1[indx1-1];
-                }
-                while (thresholds[k] >= t2[indx2] && indx2 < t_l2){
-                    indx2 +=1;
-                }
-                if (indx2 == 0){
-                    F2[k] = 0;
-                } else {
-                    F2[k] = x2[indx2-1];
-                }
-            }
-
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                if (F2[k] > F1[k]) {
-                    sum_s += (F2[k] - F1[k])*(thresholds[k+1] - thresholds[k]);
-                }
-            }
-
-            if (sum_s -  eps*sum_all <= 1e-9) {
-                greater_indx(i, j) = 1;
-            }
-
-            sum_all = 0;
-            sum_s = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                if (F1[k] > F2[k]) {
-                    sum_s += (F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                }
-            }
-            if (sum_s - sum_all * eps <= 1e-9) {
                 smaller_indx(i, j) = 1;
             }
         }
@@ -1484,92 +792,6 @@ List new_func_list_sd(List X, List x, List gridx, List gridX) {
 }
 
 
-
-// [[Rcpp::export]]
-List new_func_list_mat(NumericMatrix X, List x, List gridx, NumericVector gridX, double eps) {
-    int mX = X.nrow();
-    int mx = x.size();
-
-    int t_l2 = gridX.size();
-    IntegerMatrix smaller_indx(mx, mX);
-    IntegerMatrix greater_indx(mx, mX);
-
-    List ret;
-
-    for (int i = 0; i < mx; i++){
-
-        NumericVector t1 = as<NumericVector>(gridx[i]);
-        NumericVector x1 = as<NumericVector>(x[i]);
-        int t_l1 = t1.size();
-        for (int j = 0; j < mX; j++){
-
-            int dim_thresh = t_l1 + t_l2;
-            NumericVector thresholds(dim_thresh);
-            for (int l = 0; l < t_l1; l++){
-                thresholds[l] = t1[l];
-            }
-            for (int l = t_l1; l < dim_thresh; l++){
-                thresholds[l] = gridX[(l-t_l1)];
-            }
-            std::sort( thresholds.begin(), thresholds.end() );
-            thresholds.erase( std::unique( thresholds.begin(), thresholds.end() ), thresholds.end() );
-            int d = thresholds.size();
-
-            NumericVector F1(d);
-            NumericVector F2(d);
-
-            for(int k = 0; k < d; k++){
-                int indx1 = 0;
-                int indx2 = 0;
-                while (thresholds[k] >= t1[indx1] && indx1 < t_l1){
-                    indx1 +=1;
-                }
-                if (indx1 == 0){
-                    F1[k] = 0;
-                } else {
-                    F1[k] = x1[indx1-1];
-                }
-                while (thresholds[k] >= gridX[indx2] && indx2 < t_l2){
-                    indx2 +=1;
-                }
-                if (indx2 == 0){
-                    F2[k] = 0;
-                } else {
-                    F2[k] = X(j, (indx2-1));
-                }
-            }
-
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                if (F2[k] > F1[k]) {
-                    sum_s += (F2[k] - F1[k])*(thresholds[k+1] - thresholds[k]);
-                }
-            }
-            if (sum_s - eps*sum_all <= 1e-9) {
-                greater_indx(i, j) = 1;
-            }
-
-            sum_all = 0;
-            sum_s = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                if (F1[k] > F2[k]) {
-                    sum_s += (F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                }
-            }
-            if (sum_s - sum_all * eps <= 1e-9) {
-                smaller_indx(i, j) = 1;
-            }
-        }
-    }
-
-    ret["smaller"] = smaller_indx;
-    ret["greater"] = greater_indx;
-    return ret;
-}
-
 // [[Rcpp::export]]
 List new_func_list_mat_sd(NumericMatrix X, List x, List gridx, NumericVector gridX) {
     int mX = X.nrow();
@@ -1653,118 +875,6 @@ List new_func_list_mat_sd(NumericMatrix X, List x, List gridx, NumericVector gri
     return ret;
 }
 
-
-// [[Rcpp::export]]
-List ecdf_list_comp_class(List X, List t, double eps) {
-    int m = X.size();
-
-    NumericMatrix M(m, m);
-    NumericVector classY(m);
-    int class_count = 1;
-    M(m-1, m-1) = 1;
-    for (int i= 0; i < (m-1); i++) {
-        M(i, i) = 1;
-        bool class_check = false;
-        if (classY[i] == 0){
-            classY[i] = class_count;
-            class_count += 1;
-            class_check = true;
-        }
-        NumericVector t1 = as<NumericVector>(t[i]);
-        NumericVector x1 = as<NumericVector>(X[i]);
-        int t_l1 = t1.size();
-        for (int j = (i+1); j < m; j++) {
-            NumericVector t2 = as<NumericVector>(t[j]);
-            NumericVector x2 = as<NumericVector>(X[j]);
-            int t_l2 = t2.size();
-            int dim_thresh = t_l1 + t_l2;
-            NumericVector thresholds(dim_thresh);
-            for (int l = 0; l < t_l1; l++){
-                thresholds[l] = t1[l];
-            }
-            for (int l = t_l1; l < dim_thresh; l++){
-                thresholds[l] = t2[(l-t_l1)];
-            }
-
-            std::sort( thresholds.begin(), thresholds.end() );
-            thresholds.erase( std::unique( thresholds.begin(), thresholds.end() ), thresholds.end() );
-            int d = thresholds.size();
-
-            NumericVector F1(d);
-            NumericVector F2(d);
-
-            bool check_equal = true;
-
-            for (int k = 0; k < d; k++) {
-                int indx1 = 0;
-                int indx2 = 0;
-
-                while (indx1 < t_l1 && thresholds[k] >= t1[indx1]) {
-                    indx1 += 1;
-                }
-
-                if (indx1 == 0) {
-                    F1[k] = 0;
-                } else {
-                    F1[k] = x1[indx1 - 1];
-                }
-
-                while (indx2 < t_l2 && thresholds[k] >= t2[indx2]) {
-                    indx2 += 1;
-                }
-
-                if (indx2 == 0) {
-                    F2[k] = 0;
-                } else {
-                    F2[k] = x2[indx2 - 1];
-                }
-
-                if (F1[k] != F2[k]) {
-                    check_equal = false;
-                }
-            }
-
-            if (class_check == true && check_equal == true) {
-                classY[j] = class_count - 1;
-            }
-
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                if (F2[k] > F1[k]) {
-                    sum_s += (F2[k] - F1[k])*(thresholds[k+1] - thresholds[k]);
-                }
-            }
-
-            if (sum_s - eps*sum_all <= 1e-9) {
-                M(i, j) = 1;
-            }
-            if (M(i, j) == 0) {
-                sum_all = 0;
-                sum_s = 0;
-                for (int k = 0; k< (d-1); k++) {
-                    sum_all += std::abs(F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                    if (F1[k] > F2[k]) {
-                        sum_s += (F1[k] - F2[k])*(thresholds[k+1] - thresholds[k]);
-                    }
-                }
-                if (sum_s - eps*sum_all <= 1e-9) {
-                    M(j, i) = 1;
-                }
-            }
-
-        }
-    }
-    if (classY[m-1] == 0){
-        classY[m-1] = class_count;
-    }
-    List ret;
-    ret["M"] = M;
-    ret["ind"] = classY;
-    return ret;
-
-}
 
 // [[Rcpp::export]]
 List ecdf_list_comp_class_sd(List X, List t) {
@@ -1977,58 +1087,6 @@ List ecdf_list_comp_class_eps(List X, List t) {
 }
 
 // [[Rcpp::export]]
-NumericMatrix ecdf_comp(NumericMatrix X, NumericVector t, double eps) {
-    int m = X.nrow();
-    int d = X.ncol();
-    NumericMatrix M(m, m);
-
-    M(m-1, m-1) = 1;
-    for (int i= 0; i < (m-1); i++) {
-        M(i, i) = 1;
-
-        for (int j = (i+1); j < m; j++) {
-            NumericVector F1(d);
-            NumericVector F2(d);
-            for(int k = 0; k < d; k++){
-                F1[k] = X(i, k);
-                F2[k] = X(j, k);
-            }
-
-            double sum_s = 0;
-            double sum_all = 0;
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(t[k+1] - t[k]);
-                if (F2[k] > F1[k]) {
-                    sum_s += (F2[k] - F1[k])*(t[k+1] - t[k]);
-                }
-            }
-
-            if (sum_s - eps*sum_all <= 1e-9) {
-                M(i, j) = 1;
-            }
-
-            if (M(i, j) == 0) {
-                sum_all = 0;
-                sum_s = 0;
-                for (int k = 0; k< (d-1); k++) {
-                    sum_all += std::abs(F1[k] - F2[k])*(t[k+1] - t[k]);
-                    if (F1[k] > F2[k]) {
-                        sum_s += (F1[k] - F2[k])*(t[k+1] - t[k]);
-                    }
-                }
-                if (sum_s - eps*sum_all <= 1e-9) {
-                    M(j, i) = 1;
-                }
-            }
-
-        }
-    }
-
-    return M;
-
-}
-
-// [[Rcpp::export]]
 NumericMatrix ecdf_comp_sd(NumericMatrix X, NumericVector t) {
     int m = X.nrow();
     int d = X.ncol();
@@ -2151,86 +1209,7 @@ List ecdf_comp_eps(NumericMatrix X, NumericVector t) {
     return list_d_mat;
 
 }
-// [[Rcpp::export]]
-List ecdf_comp_class(NumericMatrix X, NumericVector t, double eps) {
-    int m = X.nrow();
-    int d = X.ncol();
-    NumericMatrix M(m, m);
-    NumericVector classY(m);
-    int class_count = 1;
 
-    M(m-1, m-1) = 1;
-    for (int i= 0; i < (m-1); i++) {
-        M(i, i) = 1;
-        bool class_check = false;
-        if (classY[i] == 0){
-            classY[i] = class_count;
-            class_count += 1;
-            class_check = true;
-        }
-        for (int j = (i+1); j < m; j++) {
-            NumericVector F1(d);
-            NumericVector F2(d);
-            bool check_equal = true;
-            if (class_check == true){
-                for(int k = 0; k < d; k++){
-                    F1[k] = X(i, k);
-                    F2[k] = X(j, k);
-                    if (F1[k] != F2[k]){
-                        check_equal = false;
-                    }
-                }
-                if (check_equal == true){
-                    classY[j] = class_count -1;
-                }
-            } else {
-                for(int k = 0; k < d; k++){
-                    F1[k] = X(i, k);
-                    F2[k] = X(j, k);
-                }
-            }
-
-            double sum_s = 0;
-            double sum_all = 0;
-
-            for (int k = 0; k< (d-1); k++) {
-                sum_all += std::abs(F1[k] - F2[k])*(t[k+1] - t[k]);
-                if (F2[k] > F1[k]) {
-                    sum_s += (F2[k] - F1[k])*(t[k+1] - t[k]);
-                }
-            }
-
-            if (sum_s - eps*sum_all <= 1e-9) {
-                M(i, j) = 1;
-            }
-
-            if (M(i, j) == 0) {
-                sum_all = 0;
-                sum_s = 0;
-                for (int k = 0; k< (d-1); k++) {
-                    sum_all += std::abs(F1[k] - F2[k])*(t[k+1] - t[k]);
-                    if (F1[k] > F2[k]) {
-                        sum_s += (F1[k] - F2[k])*(t[k+1] - t[k]);
-                    }
-                }
-                if (sum_s - eps*sum_all <= 1e-9) {
-                    M(j, i) = 1;
-                }
-            }
-
-        }
-    }
-    if (classY[m-1] == 0){
-        classY[m-1] = class_count;
-    }
-
-    List ret;
-    ret["M"] = M;
-    ret["ind"] = classY;
-
-    return ret;
-
-}
 
 // [[Rcpp::export]]
 List ecdf_comp_class_sd(NumericMatrix X, NumericVector t) {

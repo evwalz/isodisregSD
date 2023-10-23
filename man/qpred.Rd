@@ -2,13 +2,13 @@
 % Please edit documentation in R/evaluation.R
 \name{qpred}
 \alias{qpred}
-\alias{qpred.idrafsd}
+\alias{qpred.idrsd}
 \alias{qpred.data.frame}
 \title{Quantile function of IDR or raw forecasts}
 \usage{
 qpred(predictions, quantiles)
 
-\method{qpred}{idrafsd}(predictions, quantiles)
+\method{qpred}{idrsd}(predictions, quantiles)
 
 \method{qpred}{data.frame}(predictions, quantiles)
 }

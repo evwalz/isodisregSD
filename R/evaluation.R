@@ -30,7 +30,7 @@
 #' @export
 #'
 #' @examples
-#' ## Example from IDR package: Adapt to idrafsd
+#' ## Example from IDR package: Adapt to idrsd
 #' data("rain")
 #'
 #' ## Postprocess HRES forecast using data of 3 years
@@ -51,11 +51,11 @@ cdf <- function(predictions, thresholds) {
 
 #' cdf method for class 'idr'
 #'
-#' @method cdf idrafsd
+#' @method cdf idrsd
 #' @rdname cdf
 #' @importFrom stats stepfun
 #' @export
-cdf.idrafsd <- function(predictions, thresholds) {
+cdf.idrsd <- function(predictions, thresholds) {
   if (!is.vector(thresholds, "numeric"))
     stop("'thresholds' must be a numeric vector")
   cdf0 <- function(data) {
@@ -136,13 +136,13 @@ qpred <- function(predictions, quantiles) {
 
 #' qpred method for class 'idrafsd'
 #'
-#' @method qpred idrafsd
+#' @method qpred idrsd
 #'
 #' @importFrom stats stepfun
 #' @importFrom utils tail
 #' @rdname qpred
 #' @export
-qpred.idrafsd <- function(predictions, quantiles) {
+qpred.idrsd <- function(predictions, quantiles) {
 
   # Check input
   if (!is.vector(quantiles, "numeric") || min(quantiles) < 0 ||
@@ -379,10 +379,10 @@ crps <- function(predictions, y) {
 
 #' crps method for class 'idrafsd'
 #'
-#' @method crps idrafsd
+#' @method crps idrsd
 #' @rdname crps
 #' @export
-crps.idrafsd <- function(predictions, y) {
+crps.idrsd <- function(predictions, y) {
 
   # Check input
   if (!is.vector(y, "numeric"))
@@ -485,11 +485,11 @@ pit <- function(predictions, y, randomize = TRUE, seed = NULL) {
 
 #' pit method for class 'idrafsd'
 #'
-#' @method pit idrafsd
+#' @method pit idrsd
 #' @rdname pit
 #' @importFrom stats stepfun
 #' @export
-pit.idrafsd <- function(predictions, y, randomize = TRUE, seed = NULL) {
+pit.idrsd <- function(predictions, y, randomize = TRUE, seed = NULL) {
 
   # Check input
   if (!is.vector(y, "numeric"))
@@ -564,7 +564,7 @@ pit.data.frame <- function(predictions, y, randomize = TRUE, seed = NULL) {
 #'
 #' @description Plot an IDR predictive CDF.
 #'
-#' @method plot idrafsd
+#' @method plot idrsd
 #'
 #' @param x object of class \code{idrafsd} (output of
 #'   \code{\link{predict.idrcal}}).
@@ -605,7 +605,7 @@ pit.data.frame <- function(predictions, y, randomize = TRUE, seed = NULL) {
 #' fit <- idr(y = y, X = X)
 #' pred <- predict(fit, data = data.frame(HRES = 1, CTR = 0))
 #' plot(pred)
-plot.idrafsd <- function(x, index = 1, bounds = TRUE, col.cdf = "black",
+plot.idrsd <- function(x, index = 1, bounds = TRUE, col.cdf = "black",
    col.bounds = "blue", lty.cdf = 1, lty.bounds = 3, xlab = "Threshold",
    ylab = "CDF", main = "IDR predictive CDF", ...) {
   pred <- x[[index]]

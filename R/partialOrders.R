@@ -26,92 +26,16 @@
 
 # Classical R function
 
-compOrd_cpp <- function(X, eps) {
-  if (eps == 'sd'){
-    M = new_func_sd(as.matrix(X))
-  } else {
-    M = new_func(as.matrix(X), eps)
-  }
-
+compOrd_cpp <- function(X) {
+  M = new_func_sd(as.matrix(X))
   paths <- which(M==1,arr.ind = TRUE)
   dimnames(paths) <- list(NULL, c("smaller", "greater"))
   list(M=M, paths = paths,eps=eps)
 }
 
-compOrd_cpp_eps <- function(X, perc, epsilon) {
-  n <- nrow(X)
-  list_d_mat = new_func_eps(as.matrix(X))
-  d <- list_d_mat$d
-  Intvals <- list_d_mat$mat
-  ksel <- list_d_mat$k
-  Int <- Intvals[1:ksel, 1]
-  Int1 <- Intvals[1:ksel, 2]
-  Int2 <- Intvals[1:ksel, 3]
-  k <- 1
-  indx_list <- list_d_mat$indx[1:ksel, ]
-  ##########
-  sd_perc <- 2*d / (n*(n-1))
-  # (1-sd_perc) <= 1e-9
-  if (sd_perc == 1){
-    M <- list_d_mat$M
-    eps <- 'sd'
-  } else {
-    print('epsilon grid hard coded')
 
-    percentage = rep(0, length(epsilon))
-    for (eps in epsilon){
-      bool_val <-((Int1 <= eps*Int) + (Int2 <= eps*Int))
-      #vec_check[rowcol[bool_val,]] <- TRUE
-      percentage[k] <-2*(sum(bool_val)+d) / (n*(n-1))
-      k <- k+1
-    }
-    percentvals <- c(2*d/(n*(n-1)), percentage)
-    print(percentvals)
-    indx <- length(percentvals) - findInterval(1-perc, sort(1-percentvals))
-
-    # if indx == 0 or indx == 1
-    if (indx == 0){
-      #std
-      M <- list_d_mat$M
-      eps <- 'sd'
-    } else {
-      if (indx == length(percentvals)){
-        eps <- epsilon[length(epsilon)]
-      } else {
-        eps <- epsilon[indx]
-      }
-      # not if percentage is not reached maximum epsilon is selected
-      M <- list_d_mat$M
-      eps <- epsilon[indx]
-      indx_rows <- indx_list[, 1] + 1
-      indx_cols <- indx_list[, 2] + 1
-      bool_val <- as.numeric(Int1 - eps*Int <= 1e-9)
-      bool_val2 <- as.numeric(Int2 - eps*Int <= 1e-9)
-      for (l in 1:length(indx_rows)){
-        M[indx_rows[l], indx_cols[l]] <- bool_val[l]
-        M[indx_cols[l], indx_rows[l]] <- bool_val2[l]
-      }
-      # use vec_check to get position of elements which still needs to be checked
-    }
-
-  }
-  #########
-
-  paths <- which(M==1,arr.ind = TRUE)
-  dimnames(paths) <- list(NULL, c("smaller", "greater"))
-  list(M=M, paths = paths,eps=eps)
-
-  #paths <- which(M==1,arr.ind = TRUE)
-  #dimnames(paths) <- list(NULL, c("smaller", "greater"))
-  #list(M=M, paths = paths,eps=eps)
-}
-
-compOrd_ecdf <- function(X, grid, eps) {
-  if (eps == 'sd'){
-    M <- ecdf_comp_sd(X, grid)
-  } else {
-    M <- ecdf_comp(X, grid, eps)
-  }
+compOrd_ecdf <- function(X, grid) {
+  M <- ecdf_comp_sd(X, grid)
   paths <- which(M==1,arr.ind = TRUE)
   dimnames(paths) <- list(NULL, c("smaller", "greater"))
   list(M=M, paths = paths,eps=eps)
@@ -181,98 +105,21 @@ compOrd_ecdf_eps <- function(X, grid, perc, epsilon) {
   list(M=M, paths = paths,eps=eps)
 }
 
-compOrd_normal <- function(X, eps) {
-  if (eps == 'sd'){
-    M = normal_comp_sd(as.matrix(X))
-  } else {
-    M = normal_comp(as.matrix(X), eps)
-  }
-
+compOrd_normal <- function(X) {
+  M = normal_comp_sd(as.matrix(X))
   paths <- which(M==1,arr.ind = TRUE)
   dimnames(paths) <- list(NULL, c("smaller", "greater"))
   list(M=M, paths = paths,eps=eps)
 }
 
-compOrd_normal_eps <- function(X, perc, epsilon) {
-  n <- nrow(X)
-  list_d_mat = normal_comp_eps(as.matrix(X))
-  d <- list_d_mat$d
-  Intvals <- list_d_mat$mat
-  ksel <- list_d_mat$k
-  left <- Intvals[1:ksel, 1]
-  diff_mean <- Intvals[1:ksel, 2]
-  F1 <- Intvals[1:ksel, 3]
-  G2 <- Intvals[1:ksel, 4]
-  case_ix <- Intvals[1:ksel, 5]
-  k <- 1
-  indx_list <- list_d_mat$indx[1:ksel, ]
-  ##########
-  sd_perc <- 2*d / (n*(n-1))
-  if (1 == sd_perc){
-    M <- list_d_mat$M
-    eps <- 'sd'
-  } else {
-    print('epsilon grid hard coded')
-    #epsilon <- seq(0.01, 0.49, 0.1)
-    #epsilon <- c(0.00001, 0.0001, 0.001, epsilon)
-    percentage = rep(0, length(epsilon))
-    bool_val = rep(0, length(diff_mean))
-    for (eps in epsilon){
-      bool_val1 <-(((1-2*eps)*left <= diff_mean*(eps * (2*F1-1) + (1-F1))) + ((1-2*eps)*left <= -1*diff_mean*(eps + G2*(1-2*eps))))
-      bool_val2 <-(((1-2*eps)*left <= diff_mean*(eps + (1-2*eps)*F1)) + ((1-2*eps)*left <= -1*diff_mean*(eps*(2*G2-1) + (1-G2))))
-      #vec_check[rowcol[bool_val,]] <- TRUE
-      ix1 = case_ix == 0
-      ix2 = case_ix == 1
-      bool_val[ix1] = bool_val1[ix1]
-      bool_val[ix2] = bool_val2[ix2]
-      percentage[k] <-2*(sum(bool_val)+d) / (n*(n-1))
-      k <- k+1
-    }
-    percentvals <- c(2*d/(n*(n-1)), percentage)
-    print(percentvals)
-    indx <- length(percentvals) - findInterval(1-perc, sort(1-percentvals))
 
-    # if indx == 0 or indx == 1
-    if (indx == 0){
-      #std
-      M <- list_d_mat$M
-      eps <- 'sd'
-    } else {
-      if (indx == length(percentvals)){
-        eps <- epsilon[length(epsilon)]
-      } else {
-        eps <- epsilon[indx]
-      }
-      # not if percentage is not reached maximum epsilon is selected
-      M <- list_d_mat$M
-      eps <- epsilon[indx]
-      indx_rows <- indx_list[, 1] + 1
-      indx_cols <- indx_list[, 2] + 1
-      # update M with
-      bool_val1 <- (1-2*eps)*left <= -1*diff_mean * (eps + (1-2*eps)*G2)#as.numeric(Int1 - eps*Int <= 1e-9)
-      bool_val2 <- (1-2*eps)*left <= diff_mean * (eps*(2*F1-1) + (1-F1))#as.numeric(Int2 - eps*Int <= 1e-9)
-      bool_val3 <- (1-2*eps)*left <= -1*diff_mean * (eps + (1-2*eps)*F1)#as.numeric(Int1 - eps*Int <= 1e-9)
-      bool_val4 <- (1-2*eps)*left <= diff_mean * (eps*(2*G2-1) + (1-G2))
-
-      for (l in 1:length(indx_rows)){
-        if (case_ix[l] == 0){
-          M[indx_rows[l], indx_cols[l]] <- bool_val1[l]
-          M[indx_cols[l], indx_rows[l]] <- bool_val2[l]
-        } else {
-          M[indx_rows[l], indx_cols[l]] <- bool_val3[l]
-          M[indx_cols[l], indx_rows[l]] <- bool_val4[l]
-        }
-      }
-      # use vec_check to get position of elements which still needs to be checked
-    }
-  }
-  #########
-
+compOrd_normal_ab <- function(X, a, b) {
+  M = normal_comp_sd_ab(as.matrix(X), a, b)
   paths <- which(M==1,arr.ind = TRUE)
   dimnames(paths) <- list(NULL, c("smaller", "greater"))
-  list(M=M, paths = paths,eps=eps)
-
+  list(M=M, paths = paths,eps='sd')
 }
+
 
 #' Transitive Reduction of path matrix
 #'
@@ -337,7 +184,7 @@ trReduc <- function(paths, n) {
 #'
 #' @keywords internal
 
-neighborPoints <- function(x, X,eps, Ord) {
+neighborPoints <- function(x, X, Ord) {
 
   x <- t(apply(x, 1, FUN=function(x) sort(x)))
   X <- data.matrix(X, rownames.force = NA)
@@ -345,11 +192,7 @@ neighborPoints <- function(x, X,eps, Ord) {
   mX <- nrow(X)
   mx <- nrow(x)
 
-  if (eps == 'sd'){
-    list_indx <- new_func2_sd(X,x)
-  } else {
-    list_indx <- new_func2(X,x,eps)
-  }
+  list_indx <- new_func2_sd(X,x)
 
   smaller_indx <- list_indx$smaller
   greater_indx <- list_indx$greater
@@ -380,7 +223,7 @@ neighborPoints <- function(x, X,eps, Ord) {
 }
 
 
-neighborPoints3 <- function(x, X,gridx, gridX, eps, Ord) {
+neighborPoints3 <- function(x, X,gridx, gridX, Ord) {
   # train object: X is list or X is matrix
   # test object: x
   if (is.vector(gridx, mode = "numeric") && (is.matrix(x))){
@@ -391,39 +234,23 @@ neighborPoints3 <- function(x, X,gridx, gridX, eps, Ord) {
     if (is.matrix(X)){
 
       X <- data.matrix(X, rownames.force = NA)
-      if (eps == 'sd'){
-        list_indx <- new_func_mat_sd(X,x,gridx, gridX)
-      } else {
-        list_indx <- new_func_mat(X,x,gridx, gridX, eps)
-      }
+
+      list_indx <- new_func_mat_sd(X,x,gridx, gridX)
 
     } else {
       #stop("'data' must be list")
-      if (eps == 'sd'){
-
-        list_indx <- new_func_mat_list_sd(X,x,gridx, gridX)
-      } else {
-        list_indx <- new_func_mat_list(X,x,gridx, gridX, eps)
-      }
-
+      list_indx <- new_func_mat_list_sd(X,x,gridx, gridX)
     }
 
   } else if (is.list(x) && is.list(gridx)){
 
       mx <- length(x)
       if (is.list(X)){
-        if (eps == 'sd'){
           list_indx <- new_func_list_sd(X,x,gridx, gridX)
-        } else {
-          list_indx <- new_func_list(X,x,gridx, gridX, eps)
-        }
+
       } else {
         #stop("'data' must be matrix")
-        if (eps == 'sd'){
-          list_indx <- new_func_list_mat_sd(X,x,gridx, gridX)
-        } else {
-          list_indx <- new_func_list_mat(X,x,gridx, gridX, eps)
-        }
+        list_indx <- new_func_list_mat_sd(X,x,gridx, gridX)
       }
   } else
       stop("wrong input type for 'data' and / or 'grid'")
@@ -467,13 +294,9 @@ neighborPoints3 <- function(x, X,gridx, gridX, eps, Ord) {
   list(smaller = unname(smaller), greater = unname(greater))
 }
 
-neighborPoints_samegrid <- function(x, X,grid, eps, Ord) {
+neighborPoints_samegrid <- function(x, X,grid,  Ord) {
   mx <- nrow(x)
-  if (eps == 'sd'){
-    list_indx <- new_func_single_grid_sd(X,x,grid)
-  } else {
-    list_indx <- new_func_single_grid(X,x,grid, eps)
-  }
+  list_indx <- new_func_single_grid_sd(X,x,grid)
 
 
   smaller_indx <- list_indx$smaller
@@ -505,14 +328,9 @@ neighborPoints_samegrid <- function(x, X,grid, eps, Ord) {
 
 
 # neighborPoints_norm(x = data, X = X, eps=object$eps, Ord = object$Ord)
-neighborPoints_norm <- function(x, X, eps, Ord){
+neighborPoints_norm <- function(x, X, Ord){
   mx <- nrow(x)
-  if (eps == 'sd'){
-    list_indx <- indx_norm_sd(X, x)
-  } else {
-    list_indx <- indx_norm(X, x, eps)
-  }
-
+  list_indx <- indx_norm_sd(X, x)
 
   smaller_indx <- list_indx$smaller
   greater_indx <- list_indx$greater

@@ -1,4 +1,4 @@
-Package: isodisregAFSD
+Package: isodisregSD
 Title: Computes IDR for distributional input
 Version: 1.0
 Authors@R: 
@@ -13,8 +13,8 @@ LinkingTo:
     Rcpp
 Imports: 
     Rcpp
-URL: https://github.com/evwalz/isodisregAFSD
-BugReports: https://github.com/evwalz/isodisregAFSD/issues
+URL: https://github.com/evwalz/isodisregSD
+BugReports: https://github.com/evwalz/isodisregSD/issues
 Suggests: 
     knitr,
     rmarkdown

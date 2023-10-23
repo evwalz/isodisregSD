@@ -14,9 +14,9 @@
 )
 }
 \arguments{
-\item{object}{IDR fit (object of class \code{"idrfit"}).}
+\item{object}{IDR fit (object of class \code{"idrcal"}).}
 
-\item{data}{optional \code{data.frame} containing variables with which to
+\item{data}{optional object with which to
 predict. In-sample predictions are returned if this is omitted.}
 
 \item{digits}{number of decimal places for the predictive CDF.}
@@ -42,32 +42,15 @@ the forecast variables are not comparable to the training data.
 Prediction based on IDR model fit.
 }
 \details{
-If the variables \code{x = data[j,]} for which predictions are
+If the variables \code{data} for which predictions are
 desired are already contained in the training dataset \code{X} for the fit,
 \code{predict.idrfit} returns the corresponding in-sample prediction.
 Otherwise monotonicity is used to derive upper and lower bounds for the
 predictive CDF, and the predictive CDF is a pointwise average of these
 bounds.
-
-If the lower and the upper bound on the predictive cdf are far apart (or
-trivial, i.e. constant 0 or constant 1), this indicates that the prediction
-based on \code{x} is uncertain because either the training dataset is too
-small or only few similar variable combinations as in \code{x} have been
-observed in the training data. However, \emph{the bounds on the predictive
-CDF are not prediction intervals and should not be interpreted as such. They
-only indicate the uncertainty of out-of-sample predictions for which the
-variables are not contained in the training data.}
-
-If the new variables \code{x} are greater than all \code{X[i, ]} in the
-selected order(s), the lower bound on the cdf is trivial (constant 0) and the
-upper bound is taken as predictive cdf. The upper bound on the cdf is trivial
-(constant 1) if \code{x} is smaller than all \code{X[i, ]}. If \code{x} is
-not comparable to any row of \code{X} in the given order, a prediction based
-on the training data is not possible. In that case, the default forecast is
-the empirical distribution of \code{y} in the training data.
 }
 \seealso{
-\code{\link{idr}} to fit IDR to training data.
+\code{\link{idrsd}} to fit IDR to training data.
 
 \code{\link{cdf}}, \code{\link{qpred}} to evaluate the CDF or quantile
 function of IDR predictions.
@@ -76,5 +59,5 @@ function of IDR predictions.
 \code{\link{pit}} to compute Brier scores, quantile scores, the CRPS and the
 PIT of IDR predictions.
 
-\code{\link[isodistrreg:plot.idrafsd]{plot}} to plot IDR predictive CDFs.
+\code{\link[isodistrreg:plot.idrsd]{plot}} to plot IDR predictive CDFs.
 }

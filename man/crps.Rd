@@ -2,13 +2,13 @@
 % Please edit documentation in R/evaluation.R
 \name{crps}
 \alias{crps}
-\alias{crps.idrafsd}
+\alias{crps.idrsd}
 \alias{crps.data.frame}
 \title{Continuous ranked probability score (CRPS)}
 \usage{
 crps(predictions, y)
 
-\method{crps}{idrafsd}(predictions, y)
+\method{crps}{idrsd}(predictions, y)
 
 \method{crps}{data.frame}(predictions, y)
 }

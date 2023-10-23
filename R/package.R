@@ -6,12 +6,12 @@
 #' @section How does it work?:
 #' Provide some more detailes
 #' @docType package
-#' @name isodisregAFSD-package
-#' @useDynLib isodisregAFSD, .registration = TRUE
+#' @name isodisregSD-package
+#' @useDynLib isodisregSD, .registration = TRUE
 NULL
 
 
 #' @keywords internal
 .onUnload <- function (libpath) {
-  library.dynam.unload("isodisregAFSD", libpath)
+  library.dynam.unload("isodisregSD", libpath)
 }

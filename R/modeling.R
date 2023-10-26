@@ -136,7 +136,10 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
     names(X) <- NULL
 
     if (org_crps){
-      original_crps <- mean(crps_sample(y, dat = X))
+      X_mat <- as.matrix(X)
+      colnames(X_mat) <- NULL
+      rownames(X_mat) <- NULL
+      original_crps <- mean(crps_sample(y, dat = X_mat))
     }
 
     x <- data.frame(y = y, ind = seq_along(y))

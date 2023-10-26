@@ -5,11 +5,11 @@
 \alias{isodisregSD-package}
 \title{Isotonic distributional Regression (IDR) for distributional data}
 \description{
-Isotonic distributional Regression (IDR) is a nonparametric method to
-estimate conditional distributions under monotonicity constraints.
+Isotonic distributional Regression (IDR) for distributional data is a nonparametric method to
+estimate conditional distributions under stochastic order constraints.
 }
 \section{How does it work?}{
 
-Provide some more detailes
+Link to Preprint on ArXiv as soon as available
 }
 

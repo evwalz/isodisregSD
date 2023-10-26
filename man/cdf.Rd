@@ -13,7 +13,7 @@ cdf(predictions, thresholds)
 \method{cdf}{data.frame}(predictions, thresholds)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idrafsd} (output of
+\item{predictions}{either an object of class \code{idrsd} (output of
 \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables.
 In the latter case, the CDF is computed using the empirical distribution of
 the variables in \code{predictions}.}

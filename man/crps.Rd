@@ -3,12 +3,15 @@
 \name{crps}
 \alias{crps}
 \alias{crps.idrsd}
+\alias{crps.idr}
 \alias{crps.data.frame}
 \title{Continuous ranked probability score (CRPS)}
 \usage{
 crps(predictions, y)
 
 \method{crps}{idrsd}(predictions, y)
+
+\method{crps}{idr}(predictions, y)
 
 \method{crps}{data.frame}(predictions, y)
 }

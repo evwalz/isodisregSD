@@ -1,10 +1,9 @@
 Package: isodisregSD
-Title: Computes IDR for distributional input
+Title: IDR for distributional input and iso-based CRPS decomposition
 Version: 1.0
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Eva-Maria", "Walz", , "evamaria.walz@gmx.de", role = c("aut", "cre"),)
+Description: Computes IDR for different types of distributional input data. Yields calibrated forecasts which are used to compute iso-based CRPS decomposition. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

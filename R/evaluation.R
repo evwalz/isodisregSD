@@ -7,7 +7,7 @@
 #' @usage
 #' cdf(predictions, thresholds)
 #'
-#' @param predictions either an object of class \code{idrafsd} (output of
+#' @param predictions either an object of class \code{idrsd} (output of
 #'   \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables.
 #'   In the latter case, the CDF is computed using the empirical distribution of
 #'   the variables in \code{predictions}.
@@ -227,7 +227,7 @@ qpred.data.frame <- function(predictions, quantiles) {
 #' X <- rain[1:(3 * 365), "HRES", drop = FALSE]
 #' y <- rain[1:(3 * 365), "obs"]
 #'
-#' fit <- idrafsd(y = y, X = X)
+#' fit <- idrsd(y = y, X = X)
 #'
 #' ## Compute mean absolute error of the median postprocessed forecast using
 #' ## data of the next 2 years (out-of-sample predictions) and compare to raw
@@ -288,7 +288,7 @@ qscore <- function(predictions, quantiles, y) {
 #' X <- rain[1:(3 * 365), "HRES", drop = FALSE]
 #' y <- rain[1:(3 * 365), "obs"]
 #'
-#' fit <- idr(y = y, X = X)
+#' fit <- idrsd(y = y, X = X)
 #'
 #' ## Compute Brier score for postprocessed probability of precipitation
 #' ## forecast using data of the next 2 years (out-of-sample predictions)
@@ -397,6 +397,31 @@ crps.idrsd <- function(predictions, y) {
   crps0 <- function(y, p, w, x) 2 * sum(w * ((y < x) - p + 0.5 * w) * (x - y))
   mapply(crps0, y = y, p, w = w, x = x)
 }
+
+
+
+#' crps method for class 'irdpred'
+#'
+#' @method crps idr
+#' @rdname crps
+#' @export
+crps.idr <- function(predictions, y) {
+
+  # Check input
+  if (!is.vector(y, "numeric"))
+    stop("obs must be a numeric vector")
+  if (length(y) != 1 && length(y) != length(predictions))
+    stop("y must have length 1 or the same length as the predictions")
+
+  x <- lapply(predictions, function(p) p$points)
+  p <- lapply(predictions, function(p) p$cdf)
+  w <- lapply(p, function(x) c(x[1], diff(x)))
+
+  crps0 <- function(y, p, w, x) 2 * sum(w * ((y < x) - p + 0.5 * w) * (x - y))
+  mapply(crps0, y = y, p, w = w, x = x)
+}
+
+
 
 #' crps method for class 'data.frame'
 #'
@@ -630,3 +655,64 @@ plot.idrsd <- function(x, index = 1, bounds = TRUE, col.cdf = "black",
   }
   invisible(pred)
 }
+
+# Uncertainty
+crps_unc <- function(obs){
+  obs_ensemble <- matrix(rep(obs, length(obs)), nrow = length(obs), ncol = length(obs), byrow = TRUE)
+  return(mean(crps_sample(obs, dat = obs_ensemble)))
+}
+
+# crps for ECDFs
+crps_ecdf <- function(y, grid_vals, ecdf) {
+
+  x <- lapply(seq_len(length(y)), function(i) grid_vals)
+  p <- lapply(seq_len(nrow(ecdf)), function(i) ecdf[i,])#as.list( t(ecdf) )
+  w <- lapply(p, function(x) c(x[1], diff(x)))
+
+  crps0 <- function(y, p, w, x) 2 * sum(w * ((y < x) - p + 0.5 * w) * (x - y))
+  mapply(crps0, y = y, p, w = w, x = x)
+}
+
+#' CRPS decomposition
+#' @description Computes the individual components of the iso-based CRPS Decomposition: MSC, DSC and UNC
+#'
+#'
+#' @param y numeric vector (the response variable).
+#' @param X depends on \code{type}. For \code{type} = "ensemble", it is a numeric data frame with column number corresponding to ensemble size.
+#'     For \code{type = "idr"}, it is an IDR object from isodistrreg-package. For \code{type = "ecdf"}, X is a matrix or a list of ecdf values. For \code{type} = "dis", X is NULL. For \code{type} = "normal", X is NULL.
+#' @param grid if \code{type = "ecdf"}, than grid is a vector or a list of threshold values corresponding to ECDF-values in  \code{X}.
+#' @param dis_func if \code{type = "dis"}, then a cumulative distribution function must be specified and distributional parameters must be defined.
+#' @param type default is 'ensemble'. Other possibilities are 'idr', 'ecdf', 'dis' and 'normal
+#' @details This function computed the CRPS decomposition of a response vector \emph{y} and a distributional forecast \emph{X}, which can be an ensemble and empirical cumulative distributional function,
+#' a normal distribution or any other other closed form CDF specified by its parameters.
+#'
+#' @return A list of CRPS decomposition components: miscalibration (MSC), discrimination (DSC), uncertainty (UNC) and the original CRPS.
+#'
+#'
+#' @references
+#'
+#' @export
+#' @examples
+#' Simulate data and apply crps_deco to all possible input types
+#'
+isodeco_crps <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 'dis', 'ecdf', 'normal', 'idr', normal_ab
+                      inta = NULL, intb = NULL,
+                      pars = osqpSettings(verbose = FALSE, eps_abs = 1e-5,
+                                          eps_rel = 1e-5, max_iter = 10000L),
+                      progress = TRUE, ...) {
+
+  cali_idr <-  idrsd(y = y, X = X, grid = grid, dis_func = dis_func , type = type, inta = inta, intb = intb, # 'dis', 'ecdf', 'normal', 'idr'
+                      pars = pars,progress = progress, org_crps = TRUE, ...)
+
+  cali_preds <- predict(cali_idr)
+  cali_crps <- mean(crps(cali_preds, y))
+
+  uncertainty <- crps_unc(y)
+
+  crps_original <- cali_idr$org_crps
+
+  return(list('MSC' = crps_original - cali_crps, 'DSC' =  uncertainty - cali_crps, 'UNC' = uncertainty, 'CRPS' = crps_original))
+}
+
+
+

@@ -7,7 +7,7 @@
 bscore(predictions, thresholds, y)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idrafsd} (output of
+\item{predictions}{either an object of class \code{idrsd} (output of
 \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables.
 In the latter case, the CDF is computed using the empirical distribution of
 the variables in \code{predictions}.}
@@ -41,7 +41,7 @@ data("rain")
 X <- rain[1:(3 * 365), "HRES", drop = FALSE]
 y <- rain[1:(3 * 365), "obs"]
 
-fit <- idr(y = y, X = X)
+fit <- idrsd(y = y, X = X)
 
 ## Compute Brier score for postprocessed probability of precipitation
 ## forecast using data of the next 2 years (out-of-sample predictions)

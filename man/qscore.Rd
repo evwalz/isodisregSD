@@ -43,7 +43,7 @@ data("rain")
 X <- rain[1:(3 * 365), "HRES", drop = FALSE]
 y <- rain[1:(3 * 365), "obs"]
 
-fit <- idrafsd(y = y, X = X)
+fit <- idrsd(y = y, X = X)
 
 ## Compute mean absolute error of the median postprocessed forecast using
 ## data of the next 2 years (out-of-sample predictions) and compare to raw

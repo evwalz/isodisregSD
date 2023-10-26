@@ -75,14 +75,13 @@
 #' @export
 #' @importFrom osqp osqp
 #' @importFrom stats setNames
-#'
-
-
-
+#' @importFrom scoringRules crps_sample
+#' @importFrom scoringRules crps_norm
+#' @importFrom scoringRules crps_cnorm
 
 
 idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 'dis', 'ecdf', 'normal', 'idr', normal_ab
-                  inta = NULL, intb = NULL,
+                  inta = NULL, intb = NULL, org_crps = FALSE,
                   pars = osqpSettings(verbose = FALSE, eps_abs = 1e-5,
                                      eps_rel = 1e-5, max_iter = 10000L),
                   progress = TRUE, ...) {
@@ -104,10 +103,14 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
   if (!isTRUE(progress) & !isFALSE(progress))
     stop("'progress' must be TRUE/FALSE or 1/0")
 
+  original_crps = NULL
 
   if (type == 'idr'){
     #print('check if cdf = 0 needs to be included?')
     if (class(X) == 'idr'){
+      if (org_crps) {
+        original_crps <- mean(crps(X, y))
+      }
       grid <- lapply(X, function(x) x$points)
       #grid_unique <- sort(unique(unlist(threshold_list, use.names=FALSE)))
       X <- lapply(X, function(x) x$cdf)
@@ -131,6 +134,11 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
     nVar <- ncol(X)
     oldNames <- names(X)
     names(X) <- NULL
+
+    if (org_crps){
+      original_crps <- mean(crps_sample(y, dat = X))
+    }
+
     x <- data.frame(y = y, ind = seq_along(y))
     X <- data.frame(t(apply(X, 1, FUN=function(x) sort(x)))) # X can be sorted rowwise, since
     # the ensemble members are considered to be exchangeable.
@@ -159,6 +167,9 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
       stop("sigma bust be positive")
     #if (eps == 'sd')
     #  stop("'eps = sd' not yet implemented for type = normal")
+    if (org_crps) {
+      original_crps <- mean(crps_norm(y, X[,1], X[,2]))
+    }
     x <- data.frame(y = y, ind = seq_along(y))
     X <- stats::aggregate(x = x, by = data.frame(X), FUN = identity, simplify = FALSE)
     cpY <- X[["y"]]
@@ -189,6 +200,9 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
       stop("a must be smaller than b")
     }
 
+    if (org_crps) {
+      original_crps <- mean(crps_cnorm(y, X[,1], X[,2], lower = inta, upper = intb))
+    }
     #if (eps == 'sd')
     #  stop("'eps = sd' not yet implemented for type = normal")
     x <- data.frame(y = y, ind = seq_along(y))
@@ -237,6 +251,11 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
     for(i in 1:d0){
       X[,i] <- dis_func(grid[i], ...)
     }
+
+    if (org_crps) {
+      original_crps <- mean(ecdf_crps(y, grid, X))
+    }
+
     # ECDF in X with grid
     indices_sel <-  sapply(indices, FUN = function(x) x[1])
     X <- X[indices_sel, ]
@@ -266,6 +285,12 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
         stop("length of list elements in X and grid must match")
     } else {
       stop("invalid values of 'X' and 'grid'")
+    }
+
+    if (org_crps) {
+      if (type == 'ecdf'){
+        original_crps <- mean(ecdf_crps(y, grid, X))
+      }
     }
     if (is.list(grid)){
       #M_class <- ecdf_list_comp_class_sd(X, grid)
@@ -372,11 +397,11 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
   # How to define output ?
   if (type == 'ecdf' || type == 'dis' || type == 'idr'){
     structure(list(X = X, y = cpY, cdf = cdf, thresholds = thresholds, type = type, grid = grid,
-                   diagnostic = diagnostic, indices = indices, Ord=constr),
+                   diagnostic = diagnostic, indices = indices, Ord=constr, org_crps = original_crps),
               class = "idrcal")
   } else {
     structure(list(X = X, y = cpY, cdf = cdf, thresholds = thresholds, type = type,
-                   diagnostic = diagnostic, indices = indices, Ord=constr),
+                   diagnostic = diagnostic, indices = indices, Ord=constr, org_crps = original_crps),
               class = "idrcal")
   }
 

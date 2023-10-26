@@ -4,7 +4,7 @@
 \alias{idrsd}
 \title{Fit IDR to training data}
 \usage{
-idr(y, X, pars = osqpSettings(verbose = FALSE, eps_abs =
+idrsd(y, X, pars = osqpSettings(verbose = FALSE, eps_abs =
   1e-5, eps_rel = 1e-5, max_iter = 10000L), progress = TRUE)
 }
 \arguments{

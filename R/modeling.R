@@ -3,7 +3,7 @@
 #' @description Fits isotonic distributional regression (IDR) to a training
 #'   dataset with respect to the stochastic order (SD) order.
 #'
-#' @usage idr(y, X, pars = osqpSettings(verbose = FALSE, eps_abs =
+#' @usage idrsd(y, X, pars = osqpSettings(verbose = FALSE, eps_abs =
 #'   1e-5, eps_rel = 1e-5, max_iter = 10000L), progress = TRUE)
 #'
 #' @param y numeric vector (the response variable).

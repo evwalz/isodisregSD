@@ -13,7 +13,7 @@ pit(predictions, y, randomize = TRUE, seed = NULL)
 \method{pit}{data.frame}(predictions, y, randomize = TRUE, seed = NULL)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idrafsd} (output of
+\item{predictions}{either an object of class \code{idrsd} (output of
 \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 the latter case, the PIT is computed using the empirical distribution of
 the variables in \code{predictions}.}
@@ -32,33 +32,32 @@ predictive CDF (e.g. at zero for precipitation forecasts). Set \code{
 Vector of PIT values.
 }
 \description{
-Computes the probability integral transform (PIT) of IDR or raw
+Computes the probability integral transform (PIT) of IDRsd or raw
 forecasts.
 }
 \examples{
 data("rain")
 require("graphics")
 
-## Postprocess HRES forecast using data of 4 years
 
-X <- rain[1:(4 * 365), "HRES", drop = FALSE]
-y <- rain[1:(4 * 365), "obs"]
+ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
+y <- rain[1:(3 * 365), "obs"]
 
-fit <- idr(y = y, X = X)
+fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
 
-## Assess calibration of the postprocessed HRES forecast using data of next 4
+## Assess forecast using data of next 2
 ## years and compare to calibration of the raw ensemble
 
-data <- rain[(4 * 365 + 1):(8 * 365), "HRES", drop = FALSE]
-obs <- rain[(4 * 365 + 1):(8 * 365), "obs"]
-predictions <- predict(fit, data = data)
-idrPit <- pit(predictions, obs, seed = 123)
+ytest = rain[(3 * 365 + 1):(5 * 365), "obs"]
+ensemble_test = rain[(3 * 365 + 1):(5 * 365), 3:54,drop = FALSE]
+predictions <- predict(fit, data = ensemble_test)
+idrPit <- pit(predictions, ytest, seed = 123)
 
-rawData <- rain[(4 * 365 + 1):(8 * 365), c("HRES", "CTR", paste0("P", 1:50))]
-rawPit <- pit(rawData, obs, seed = 123)
+rawData <- rain[(3 * 365 + 1):(5 * 365), c("HRES", "CTR", paste0("P", 1:50))]
+rawPit <- pit(rawData, ytest, seed = 123)
 
 hist(idrPit, xlab = "Probability Integral Transform",
-  ylab = "Density", freq = FALSE, main = "Postprocessed HRES")
+  ylab = "Density", freq = FALSE, main = "Calibrated ensemble")
 hist(rawPit, xlab = "Probability Integral Transform",
   ylab = "Density", freq = FALSE, main = "Raw ensemble")
 }

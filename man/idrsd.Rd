@@ -2,7 +2,7 @@
 % Please edit documentation in R/modeling.R
 \name{idrsd}
 \alias{idrsd}
-\title{Fit IDR to training data}
+\title{Fit IDRsd to training data}
 \usage{
 idrsd(y, X, pars = osqpSettings(verbose = FALSE, eps_abs =
   1e-5, eps_rel = 1e-5, max_iter = 10000L), progress = TRUE)
@@ -10,16 +10,17 @@ idrsd(y, X, pars = osqpSettings(verbose = FALSE, eps_abs =
 \arguments{
 \item{y}{numeric vector (the response variable).}
 
-\item{X}{object that fits to specification in \emph{type}. For \emph{type = 'idr'}, X must be an IDR object,
-for \emph{type = 'ensemble'}, X must be a data.frame, for \emph{type = 'ecdf'}, X must be a matrix,
-for \emph{type = 'dis'} X is empty, for \emph{type = 'normal'} and \emph{type = 'normal_ab'} X is a matrix with 2 columns
-which represent mu and sigma parameters of the normal distribution}
+\item{X}{object that fits to specification in \code{type}. For \code{type = 'idr'}, \code{X} must be an IDR object,
+for \code{type = 'ensemble'}, \code{X} must be a data.frame where columns correspond to ensemble members, for \code{type = 'ecdf'}, \code{X} must be a \code{(n x m)} matrix
+with \code{n = length(y)} and \code{m = length(grid)}, where each row corresponds to ECDF values evaluated at \code{grid}.
+For \code{type = 'dis'} \code{X} is empty, for \code{type = 'normal'} and \code{type = 'normal_ab'} \code{X} is a matrix with 2 columns
+which represent mu and sigma parameters of the normal distribution.}
 
-\item{grid}{if type == 'ecdf', than grid is vector of threshold values corresponding to ECDF-values in X}
+\item{grid}{if \code{type == 'ecdf'}, than \code{grid} is vector of threshold values corresponding to ECDF-values in \code{X}}
 
-\item{dis_func}{if type == 'dis', then a cumulative distribution function must be specified along with its distributional parameters.}
+\item{dis_func}{if \code{type == 'dis'}, then a cumulative distribution function must be specified along with its distributional parameters.}
 
-\item{type}{default is 'ensemble'. Other possibilities are 'idr', 'ecdf', 'dis', 'normal', normal_ab}
+\item{type}{default is \code{'ensemble'}. Other possibilities are \code{'idr'}, \code{'ecdf'}, \code{'dis'}, \code{'normal'}, \code{'normal_ab'}}
 
 \item{pars}{parameters for quadratic programming optimization (only relevant
 if \code{X} has more than one column), set using
@@ -70,9 +71,9 @@ dataset with respect to the stochastic order (SD) order.
 }
 \details{
 This function computes the isotonic distributional regression (IDR)
-of a response \emph{y} on distributional data \emph{X}. IDR estimates
-the cumulative distribution function (CDF) of \emph{y} conditional on
-\emph{X} under the assumption of isotonicity. The odering on \emph{X}
+of a response \code{y} on distributional data \code{X} using stochastic order.
+IDRsd estimates the cumulative distribution function (CDF) of \code{y} conditional on
+\code{X} under the assumption of isotonicity. The odering on \code{X}
 is computed using the stochastic order.
 The conditional CDFs are estimated at each threshold in \code{unique(y)}.
 This is the set where the CDFs may have jumps.

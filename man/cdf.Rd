@@ -4,7 +4,7 @@
 \alias{cdf}
 \alias{cdf.idrsd}
 \alias{cdf.data.frame}
-\title{Cumulative distribution function (CDF) of IDR or raw forecasts}
+\title{Cumulative distribution function (CDF) of IDRsd or raw forecasts}
 \usage{
 cdf(predictions, thresholds)
 
@@ -26,7 +26,7 @@ A matrix of probabilities giving the evaluated CDFs at the given thresholds,
 one column for each threshold.
 }
 \description{
-Evaluate the the cumulative distribution function (CDF) of IDR predictions or
+Evaluate the the cumulative distribution function (CDF) of IDRsd predictions or
 of unprocessed forecasts in a \code{data.frame}.
 }
 \details{
@@ -36,21 +36,21 @@ forecasts) has jumps and \code{p} the corresponding CDF values, then for
 \code{x[i] <= x < x[i + 1]}, the CDF at \code{x} is \code{p[i]}.
 }
 \examples{
-## Example from IDR package: Adapt to idrsd
+## Data from IDR package:
+library(isodistrreg)
 data("rain")
 
-## Postprocess HRES forecast using data of 3 years
+## IDRsd based on ensemble forecast
 
-X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 y <- rain[1:(3 * 365), "obs"]
 
-fit <- idr(y = y, X = X)
+fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
+predictions <- predict(fit)
 
-## Compute probability of precipitation given that the HRES forecast is
-## 0 mm, 0.5 mm or 1 mm
-
-predictions <- predict(fit, data = data.frame(HRES = c(0, 0.5, 1)))
+## Compute probability of precipitation
 1 - cdf(predictions, thresholds = 0)
+
 }
 \seealso{
 \code{\link{predict.idrcal}} \code{\link{qpred}}, \code{\link{bscore}}

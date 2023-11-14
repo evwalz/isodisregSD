@@ -2,12 +2,12 @@
 % Please edit documentation in R/evaluation.R
 \name{qscore}
 \alias{qscore}
-\title{Quantile scores for IDR or raw forecasts}
+\title{Quantile scores for IDRsd or raw forecasts}
 \usage{
 qscore(predictions, quantiles, y)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idrafsd} (output of
+\item{predictions}{either an object of class \code{idrsd} (output of
 \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 the latter case, quantiles are computed using the empirical distribution of
 the variables in \code{predictions}.}
@@ -23,7 +23,7 @@ A matrix of the quantile scores for the desired quantiles, one column per
 quantile.
 }
 \description{
-Computes quantile scores of IDR quantile predictions or of quantile
+Computes quantile scores of IDRsd quantile predictions or of quantile
 predictions from raw forecasts in a \code{data.frame}.
 }
 \details{
@@ -38,25 +38,26 @@ absolute error of the median forecast.
 \examples{
 data("rain")
 
-## Postprocess HRES forecast using data of 3 years
+## IDRsd based on ensemble forecast
 
-X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 y <- rain[1:(3 * 365), "obs"]
 
-fit <- idrsd(y = y, X = X)
+fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
 
 ## Compute mean absolute error of the median postprocessed forecast using
-## data of the next 2 years (out-of-sample predictions) and compare to raw
-## HRES forecast
+## data of the next year (out-of-sample predictions) and compare to raw
+## forecast
 
-data <- rain[(3 * 365 + 1):(5 * 365), "HRES", drop = FALSE]
-obs <- rain[(3 * 365 + 1):(5 * 365), "obs"]
+ytest = rain[(3 * 365 + 1):(4 * 365), "obs"]
+ensemble_test = rain[(3 * 365 + 1):(4 * 365), 3:54,drop = FALSE]
+predictions <- predict(fit, data = ensemble_test)
 
-predictions <- predict(fit, data = data)
-idrMAE <- mean(qscore(predictions, 0.5, obs))
-rawMAE <- mean(qscore(data, 0.5, obs))
+idrMAE <- mean(qscore(predictions, 0.5, ytest))
+rawMAE <- mean(qscore(ensemble_test, 0.5, ytest))
 
-c("idr" = idrMAE, "raw" = rawMAE)
+c("idrsd" = idrMAE, "raw" = rawMAE)
+
 }
 \references{
 Gneiting, T. and Raftery, A. E. (2007), 'Strictly proper scoring rules,

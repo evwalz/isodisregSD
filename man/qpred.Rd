@@ -4,7 +4,7 @@
 \alias{qpred}
 \alias{qpred.idrsd}
 \alias{qpred.data.frame}
-\title{Quantile function of IDR or raw forecasts}
+\title{Quantile function of IDRsd or raw forecasts}
 \usage{
 qpred(predictions, quantiles)
 
@@ -13,7 +13,7 @@ qpred(predictions, quantiles)
 \method{qpred}{data.frame}(predictions, quantiles)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idrafsd} (output of
+\item{predictions}{either an object of class \code{idrsd} (output of
 \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 the latter case, quantiles are computed using the empirical distribution of
 the variables in \code{predictions}.}
@@ -24,7 +24,7 @@ the variables in \code{predictions}.}
 A matrix of forecasts for the desired quantiles, one column per quantile.
 }
 \description{
-Evaluate the the quantile function of IDR predictions or of unprocessed
+Evaluate the the quantile function of IDRsd predictions or of unprocessed
 forecasts in a \code{data.frame}.
 }
 \details{
@@ -34,20 +34,21 @@ The quantiles are defined as lower quantiles, that is,
 }
 }
 \examples{
+## Data from IDR package:
+library(isodistrreg)
 data("rain")
 
-## Postprocess HRES forecast using data of 3 years
+## IDRsd based on ensemble forecast
 
-X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 y <- rain[1:(3 * 365), "obs"]
 
-fit <- idr(y = y, X = X)
+fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
+predictions <- predict(fit)
 
-## Compute 95\%-quantile forecast given that the HRES forecast is
-## 2.5 mm, 5 mm or 10 mm
-
-predictions <- predict(fit, data = data.frame(HRES = c(2.5, 5, 10)))
+## Compute 95\%-quantile forecast
 qpred(predictions, quantiles = 0.95)
+
 }
 \seealso{
 \code{\link{predict.idrcal}}, \code{\link{cdf}}, \code{\link{qscore}}

@@ -21,14 +21,24 @@ isodeco_crps(
 \arguments{
 \item{y}{numeric vector (the response variable).}
 
-\item{X}{depends on \code{type}. For \code{type} = "ensemble", it is a numeric data frame with column number corresponding to ensemble size.
-For \code{type = "idr"}, it is an IDR object from isodistrreg-package. For \code{type = "ecdf"}, X is a matrix or a list of ecdf values. For \code{type} = "dis", X is NULL. For \code{type} = "normal", X is NULL.}
+\item{X}{object that fits to specification in \code{type}. For \code{type = 'idr'}, \code{X} must be an IDR object,
+for \code{type = 'ensemble'}, \code{X} must be a data.frame where columns correspond to ensemble members, for \code{type = 'ecdf'}, \code{X} must be a \code{(n x m)} matrix
+with \code{n = length(y)} and \code{m = length(grid)}, where each row corresponds to ECDF values evaluated at \code{grid}.
+For \code{type = 'dis'} \code{X} is empty, for \code{type = 'normal'} and \code{type = 'normal_ab'} \code{X} is a matrix with 2 columns
+which represent mu and sigma parameters of the normal distribution.}
 
-\item{grid}{if \code{type = "ecdf"}, than grid is a vector or a list of threshold values corresponding to ECDF-values in  \code{X}.}
+\item{grid}{if \code{type == 'ecdf'}, than \code{grid} is vector of threshold values corresponding to ECDF-values in \code{X}}
 
-\item{dis_func}{if \code{type = "dis"}, then a cumulative distribution function must be specified and distributional parameters must be defined.}
+\item{dis_func}{if \code{type == 'dis'}, then a cumulative distribution function must be specified along with its distributional parameters.}
 
-\item{type}{default is 'ensemble'. Other possibilities are 'idr', 'ecdf', 'dis' and 'normal}
+\item{type}{default is \code{'ensemble'}. Other possibilities are \code{'idr'}, \code{'ecdf'}, \code{'dis'}, \code{'normal'}, \code{'normal_ab'}}
+
+\item{pars}{parameters for quadratic programming optimization (only relevant
+if \code{X} has more than one column), set using
+\code{\link[osqp]{osqpSettings}}.}
+
+\item{progress}{display progressbar (\code{TRUE}, \code{FALSE} or \code{1},
+\code{0})?}
 }
 \value{
 A list of CRPS decomposition components: miscalibration (MSC), discrimination (DSC), uncertainty (UNC) and the original CRPS.
@@ -41,6 +51,17 @@ This function computed the CRPS decomposition of a response vector \emph{y} and 
 a normal distribution or any other other closed form CDF specified by its parameters.
 }
 \examples{
-Simulate data and apply crps_deco to all possible input types
+
+#' data("rain")
+
+## IDRsd based on ensemble forecast
+
+ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
+y <- rain[1:(3 * 365), "obs"]
+
+## Compute CRPS decomposition components
+crps_deco <- isodeco_crps(y = y, X = ensemble, type = 'ensemble')
+print(crps_deco)
+
 
 }

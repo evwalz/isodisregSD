@@ -36,20 +36,20 @@ threshold \code{z}.
 \examples{
 data("rain")
 
-## Postprocess HRES forecast using data of 3 years
+## IDRsd based on ensemble forecast
 
-X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 y <- rain[1:(3 * 365), "obs"]
 
-fit <- idrsd(y = y, X = X)
+fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
 
-## Compute Brier score for postprocessed probability of precipitation
-## forecast using data of the next 2 years (out-of-sample predictions)
+## Compute Brier score for probability of precipitation
+## forecast using data of the next year (out-of-sample predictions)
 
-data <- rain[(3 * 365 + 1):(5 * 365), "HRES", drop = FALSE]
-obs <- rain[(3 * 365 + 1):(5 * 365), "obs"]
-predictions <- predict(fit, data = data)
-score <- bscore(predictions, thresholds = 0, y = obs)
+ytest = rain[(3 * 365 + 1):(4 * 365), "obs"]
+ensemble_test = rain[(3 * 365 + 1):(4 * 365), 3:54,drop = FALSE]
+predictions <- predict(fit, data = ensemble_test)
+score <- bscore(predictions, thresholds = 0, y = ytest)
 
 mean(score)
 }

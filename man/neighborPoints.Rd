@@ -2,7 +2,7 @@
 % Please edit documentation in R/partialOrders.R
 \name{neighborPoints}
 \alias{neighborPoints}
-\title{Neighbor points with respect to AFSD order}
+\title{Neighbor points with respect to SD order}
 \usage{
 neighborPoints(x, X, orderX)
 }
@@ -10,9 +10,6 @@ neighborPoints(x, X, orderX)
 \item{x}{numeric matrix with at least two columns.}
 
 \item{X}{numeric matrix with same number of columns as \code{x}.}
-
-\item{eps}{parameter for the AFSD order, is put the same as in the fit
-where X is put}
 }
 \value{
 Lists of length \code{nrow(x)} giving for each \code{x[i, ]} the indices
@@ -20,10 +17,10 @@ of the smaller and the greater neighbor points within the rows of \code{X}.
 }
 \description{
 Find the neighbor points of the rows of a matrix \code{x} within
-the rows of \code{X} in the AFSD partial order. That is, for each
+the rows of \code{X} in the SD order. That is, for each
 row \code{x[i, ]}, find all indices \code{k} such that either \code{x[i, ] >=
-X[k, ]} in AFSD and \code{x[i, ] >= X[j, ] >= X[k, ]} holds for no
-\code{j} different from \code{k}, or \code{x[i, ] <= X[k, ]} in AFSD
+X[k, ]} in SD and \code{x[i, ] >= X[j, ] >= X[k, ]} holds for no
+\code{j} different from \code{k}, or \code{x[i, ] <= X[k, ]} in SD
 and \code{x[i ,] <= X[j, ] <= X[k, ]} holds for no \code{j}
 different from \code{k}.
 }

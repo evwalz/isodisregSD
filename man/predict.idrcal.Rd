@@ -2,7 +2,7 @@
 % Please edit documentation in R/modeling.R
 \name{predict.idrcal}
 \alias{predict.idrcal}
-\title{Predict method for IDR fits}
+\title{Predict method for IDRsd fits}
 \usage{
 \method{predict}{idrcal}(
   object,
@@ -14,7 +14,7 @@
 )
 }
 \arguments{
-\item{object}{IDR fit (object of class \code{"idrcal"}).}
+\item{object}{IDRsd fit (object of class \code{"idrcal"}).}
 
 \item{data}{optional object with which to
 predict. In-sample predictions are returned if this is omitted.}
@@ -39,7 +39,7 @@ of all predictions for which the climatological forecast is returned because
 the forecast variables are not comparable to the training data.
 }
 \description{
-Prediction based on IDR model fit.
+Prediction based on IDRsd model fit.
 }
 \details{
 If the variables \code{data} for which predictions are
@@ -50,7 +50,7 @@ predictive CDF, and the predictive CDF is a pointwise average of these
 bounds.
 }
 \seealso{
-\code{\link{idrsd}} to fit IDR to training data.
+\code{\link{idrsd}} to fit IDRsd to training data.
 
 \code{\link{cdf}}, \code{\link{qpred}} to evaluate the CDF or quantile
 function of IDR predictions.

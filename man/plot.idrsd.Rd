@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{plot.idrsd}
 \alias{plot.idrsd}
-\title{Plot IDR predictions}
+\title{Plot IDRsd predictions}
 \usage{
 \method{plot}{idrsd}(
   x,
@@ -19,7 +19,7 @@
 )
 }
 \arguments{
-\item{x}{object of class \code{idrafsd} (output of
+\item{x}{object of class \code{idrsd} (output of
 \code{\link{predict.idrcal}}).}
 
 \item{index}{index of the prediction in \code{x} for which a plot is desired.}
@@ -48,22 +48,21 @@
 The data based on which the plot is drawn (returned invisible).
 }
 \description{
-Plot an IDR predictive CDF.
+Plot an IDRsd predictive CDF.
 }
 \examples{
 data("rain")
 require("graphics")
 
-## Postprocess HRES and CTR forecast using data of 2 years
 
-X <- rain[1:(2 * 365), c("HRES", "CTR"), drop = FALSE]
-y <- rain[1:(2 * 365), "obs"]
+ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
+y <- rain[1:(3 * 365), "obs"]
 
-## Fit IDR and plot the predictive CDF when the HRES forecast is 1 mm and
-## CTR is 0 mm
+## Fit IDRsd and plot the predictive CDF
 
-fit <- idr(y = y, X = X)
-pred <- predict(fit, data = data.frame(HRES = 1, CTR = 0))
+fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
+ensemble_test = rain[(3 * 365 + 1), 3:54,drop = FALSE]
+pred <- predict(fit, data = ensemble_test)
 plot(pred)
 }
 \seealso{

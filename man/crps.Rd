@@ -16,7 +16,7 @@ crps(predictions, y)
 \method{crps}{data.frame}(predictions, y)
 }
 \arguments{
-\item{predictions}{either an object of class \code{idrafsd} (output of
+\item{predictions}{either an object of class \code{idrsd} (output of
 \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 the latter case, the CRPS is computed using the empirical distribution of
 the variables in \code{predictions}.}
@@ -29,7 +29,7 @@ all predictions.}
 A vector of CRPS values.
 }
 \description{
-Computes the CRPS of IDR or raw forecasts.
+Computes the CRPS of IDRsd or raw forecasts.
 }
 \details{
 This function uses adapted code taken from the function \code{crps_edf} of
@@ -38,28 +38,28 @@ the \pkg{scoringRules} package.
 \examples{
 data("rain")
 
-## Postprocess HRES forecast using data of 3 years
+## IDRsd based on ensemble forecast
 
-X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 y <- rain[1:(3 * 365), "obs"]
 
-fit <- idr(y = y, X = X)
+fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
 
-## Compute CRPS of postprocessed HRES forecast using data of the next 2 years
+## Compute CRPS of forecast using data of the next year
 ## (out-of-sample predictions)
 
-data <- rain[(3 * 365 + 1):(5 * 365), "HRES", drop = FALSE]
-obs <- rain[(3 * 365 + 1):(5 * 365), "obs"]
-predictions <- predict(fit, data = data)
-idrCrps <- crps(predictions, y = obs)
+ytest = rain[(3 * 365 + 1):(4 * 365), "obs"]
+ensemble_test = rain[(3 * 365 + 1):(4 * 365), 3:54,drop = FALSE]
+predictions <- predict(fit, data = ensemble_test)
+idrCrps <- crps(predictions, y = ytest)
 
 ## Compare this to CRPS of the raw ensemble of all forecasts (high resolution,
 ## control and 50 perturbed ensemble forecasts)
 
-rawData <- rain[(3 * 365 + 1):(5 * 365), c("HRES", "CTR", paste0("P", 1:50))]
-rawCrps <- crps(rawData, y = obs)
+rawData <- rain[(3 * 365 + 1):(4 * 365), c("HRES", "CTR", paste0("P", 1:50))]
+rawCrps <- crps(rawData, y = ytest)
 
-c("idr_HRES" = mean(idrCrps), "raw_all" = mean(rawCrps))
+c("idrsd" = mean(idrCrps), "raw_all" = mean(rawCrps))
 }
 \references{
 Jordan A., Krueger F., Lerch S. (2018). "Evaluating Probabilistic

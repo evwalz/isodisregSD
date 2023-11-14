@@ -1,7 +1,7 @@
-#' Cumulative distribution function (CDF) of IDR or raw forecasts
+#' Cumulative distribution function (CDF) of IDRsd or raw forecasts
 #'
 #' @description
-#' Evaluate the the cumulative distribution function (CDF) of IDR predictions or
+#' Evaluate the the cumulative distribution function (CDF) of IDRsd predictions or
 #' of unprocessed forecasts in a \code{data.frame}.
 #'
 #' @usage
@@ -30,21 +30,21 @@
 #' @export
 #'
 #' @examples
-#' ## Example from IDR package: Adapt to idrsd
+#' ## Data from IDR package:
+#' library(isodistrreg)
 #' data("rain")
 #'
-#' ## Postprocess HRES forecast using data of 3 years
+#' ## IDRsd based on ensemble forecast
 #'
-#' X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+#' ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 #' y <- rain[1:(3 * 365), "obs"]
 #'
-#' fit <- idr(y = y, X = X)
+#' fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
+#' predictions <- predict(fit)
 #'
-#' ## Compute probability of precipitation given that the HRES forecast is
-#' ## 0 mm, 0.5 mm or 1 mm
-#'
-#' predictions <- predict(fit, data = data.frame(HRES = c(0, 0.5, 1)))
+#' ## Compute probability of precipitation
 #' 1 - cdf(predictions, thresholds = 0)
+#'
 cdf <- function(predictions, thresholds) {
     UseMethod("cdf")
 }
@@ -86,16 +86,16 @@ cdf.data.frame <- function(predictions, thresholds) {
 }
 
 
-#' Quantile function of IDR or raw forecasts
+#' Quantile function of IDRsd or raw forecasts
 #'
 #' @description
-#' Evaluate the the quantile function of IDR predictions or of unprocessed
+#' Evaluate the the quantile function of IDRsd predictions or of unprocessed
 #' forecasts in a \code{data.frame}.
 #'
 #' @usage
 #' qpred(predictions, quantiles)
 #'
-#' @param predictions either an object of class \code{idrafsd} (output of
+#' @param predictions either an object of class \code{idrsd} (output of
 #'   \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 #'   the latter case, quantiles are computed using the empirical distribution of
 #'   the variables in \code{predictions}.
@@ -116,25 +116,26 @@ cdf.data.frame <- function(predictions, thresholds) {
 #' @export
 #'
 #' @examples
+#' ## Data from IDR package:
+#' library(isodistrreg)
 #' data("rain")
 #'
-#' ## Postprocess HRES forecast using data of 3 years
+#' ## IDRsd based on ensemble forecast
 #'
-#' X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+#' ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 #' y <- rain[1:(3 * 365), "obs"]
 #'
-#' fit <- idr(y = y, X = X)
+#' fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
+#' predictions <- predict(fit)
 #'
-#' ## Compute 95%-quantile forecast given that the HRES forecast is
-#' ## 2.5 mm, 5 mm or 10 mm
-#'
-#' predictions <- predict(fit, data = data.frame(HRES = c(2.5, 5, 10)))
+#' ## Compute 95%-quantile forecast
 #' qpred(predictions, quantiles = 0.95)
+#'
 qpred <- function(predictions, quantiles) {
     UseMethod("qpred")
 }
 
-#' qpred method for class 'idrafsd'
+#' qpred method for class 'idrsd'
 #'
 #' @method qpred idrsd
 #'
@@ -182,10 +183,10 @@ qpred.data.frame <- function(predictions, quantiles) {
   unname(do.call(rbind, qVals))
 }
 
-#' Quantile scores for IDR or raw forecasts
+#' Quantile scores for IDRsd or raw forecasts
 #'
 #' @description
-#' Computes quantile scores of IDR quantile predictions or of quantile
+#' Computes quantile scores of IDRsd quantile predictions or of quantile
 #' predictions from raw forecasts in a \code{data.frame}.
 #'
 #' @usage
@@ -222,25 +223,26 @@ qpred.data.frame <- function(predictions, quantiles) {
 #' @examples
 #' data("rain")
 #'
-#' ## Postprocess HRES forecast using data of 3 years
+#' ## IDRsd based on ensemble forecast
 #'
-#' X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+#' ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 #' y <- rain[1:(3 * 365), "obs"]
 #'
-#' fit <- idrsd(y = y, X = X)
+#' fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
 #'
 #' ## Compute mean absolute error of the median postprocessed forecast using
-#' ## data of the next 2 years (out-of-sample predictions) and compare to raw
-#' ## HRES forecast
+#' ## data of the next year (out-of-sample predictions) and compare to raw
+#' ## forecast
 #'
-#' data <- rain[(3 * 365 + 1):(5 * 365), "HRES", drop = FALSE]
-#' obs <- rain[(3 * 365 + 1):(5 * 365), "obs"]
+#' ytest = rain[(3 * 365 + 1):(4 * 365), "obs"]
+#' ensemble_test = rain[(3 * 365 + 1):(4 * 365), 3:54,drop = FALSE]
+#' predictions <- predict(fit, data = ensemble_test)
 #'
-#' predictions <- predict(fit, data = data)
-#' idrMAE <- mean(qscore(predictions, 0.5, obs))
-#' rawMAE <- mean(qscore(data, 0.5, obs))
+#' idrMAE <- mean(qscore(predictions, 0.5, ytest))
+#' rawMAE <- mean(qscore(ensemble_test, 0.5, ytest))
 #'
-#' c("idr" = idrMAE, "raw" = rawMAE)
+#' c("idrsd" = idrMAE, "raw" = rawMAE)
+#'
 qscore <- function(predictions, quantiles, y) {
   if (!is.vector(y, "numeric"))
     stop("y must be a numeric vector")
@@ -283,20 +285,20 @@ qscore <- function(predictions, quantiles, y) {
 #' @examples
 #' data("rain")
 #'
-#' ## Postprocess HRES forecast using data of 3 years
+#' ## IDRsd based on ensemble forecast
 #'
-#' X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+#' ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 #' y <- rain[1:(3 * 365), "obs"]
 #'
-#' fit <- idrsd(y = y, X = X)
+#' fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
 #'
-#' ## Compute Brier score for postprocessed probability of precipitation
-#' ## forecast using data of the next 2 years (out-of-sample predictions)
+#' ## Compute Brier score for probability of precipitation
+#' ## forecast using data of the next year (out-of-sample predictions)
 #'
-#' data <- rain[(3 * 365 + 1):(5 * 365), "HRES", drop = FALSE]
-#' obs <- rain[(3 * 365 + 1):(5 * 365), "obs"]
-#' predictions <- predict(fit, data = data)
-#' score <- bscore(predictions, thresholds = 0, y = obs)
+#' ytest = rain[(3 * 365 + 1):(4 * 365), "obs"]
+#' ensemble_test = rain[(3 * 365 + 1):(4 * 365), 3:54,drop = FALSE]
+#' predictions <- predict(fit, data = ensemble_test)
+#' score <- bscore(predictions, thresholds = 0, y = ytest)
 #'
 #' mean(score)
 bscore <- function(predictions, thresholds, y) {
@@ -318,11 +320,11 @@ bscore <- function(predictions, thresholds, y) {
 
 #' Continuous ranked probability score (CRPS)
 #'
-#' @description Computes the CRPS of IDR or raw forecasts.
+#' @description Computes the CRPS of IDRsd or raw forecasts.
 #'
 #' @usage crps(predictions, y)
 #'
-#' @param predictions either an object of class \code{idrafsd} (output of
+#' @param predictions either an object of class \code{idrsd} (output of
 #'   \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 #'   the latter case, the CRPS is computed using the empirical distribution of
 #'   the variables in \code{predictions}.
@@ -351,33 +353,33 @@ bscore <- function(predictions, thresholds, y) {
 #' @examples
 #' data("rain")
 #'
-#' ## Postprocess HRES forecast using data of 3 years
+#' ## IDRsd based on ensemble forecast
 #'
-#' X <- rain[1:(3 * 365), "HRES", drop = FALSE]
+#' ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
 #' y <- rain[1:(3 * 365), "obs"]
 #'
-#' fit <- idr(y = y, X = X)
+#' fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
 #'
-#' ## Compute CRPS of postprocessed HRES forecast using data of the next 2 years
+#' ## Compute CRPS of forecast using data of the next year
 #' ## (out-of-sample predictions)
 #'
-#' data <- rain[(3 * 365 + 1):(5 * 365), "HRES", drop = FALSE]
-#' obs <- rain[(3 * 365 + 1):(5 * 365), "obs"]
-#' predictions <- predict(fit, data = data)
-#' idrCrps <- crps(predictions, y = obs)
+#' ytest = rain[(3 * 365 + 1):(4 * 365), "obs"]
+#' ensemble_test = rain[(3 * 365 + 1):(4 * 365), 3:54,drop = FALSE]
+#' predictions <- predict(fit, data = ensemble_test)
+#' idrCrps <- crps(predictions, y = ytest)
 #'
 #' ## Compare this to CRPS of the raw ensemble of all forecasts (high resolution,
 #' ## control and 50 perturbed ensemble forecasts)
 #'
-#' rawData <- rain[(3 * 365 + 1):(5 * 365), c("HRES", "CTR", paste0("P", 1:50))]
-#' rawCrps <- crps(rawData, y = obs)
+#' rawData <- rain[(3 * 365 + 1):(4 * 365), c("HRES", "CTR", paste0("P", 1:50))]
+#' rawCrps <- crps(rawData, y = ytest)
 #'
-#' c("idr_HRES" = mean(idrCrps), "raw_all" = mean(rawCrps))
+#' c("idrsd" = mean(idrCrps), "raw_all" = mean(rawCrps))
 crps <- function(predictions, y) {
     UseMethod("crps")
 }
 
-#' crps method for class 'idrafsd'
+#' crps method for class 'idrsd'
 #'
 #' @method crps idrsd
 #' @rdname crps
@@ -446,12 +448,12 @@ crps.data.frame <- function(predictions, y) {
 
 #' Probability integral transform (PIT)
 #'
-#' @description Computes the probability integral transform (PIT) of IDR or raw
+#' @description Computes the probability integral transform (PIT) of IDRsd or raw
 #'   forecasts.
 #'
 #' @usage pit(predictions, y, randomize = TRUE, seed = NULL)
 #'
-#' @param predictions either an object of class \code{idrafsd} (output of
+#' @param predictions either an object of class \code{idrsd} (output of
 #'   \code{\link{predict.idrcal}}), or a \code{data.frame} of numeric variables. In
 #'   the latter case, the PIT is computed using the empirical distribution of
 #'   the variables in \code{predictions}.
@@ -481,26 +483,25 @@ crps.data.frame <- function(predictions, y) {
 #' data("rain")
 #' require("graphics")
 #'
-#' ## Postprocess HRES forecast using data of 4 years
 #'
-#' X <- rain[1:(4 * 365), "HRES", drop = FALSE]
-#' y <- rain[1:(4 * 365), "obs"]
+#' ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
+#' y <- rain[1:(3 * 365), "obs"]
 #'
-#' fit <- idr(y = y, X = X)
+#' fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
 #'
-#' ## Assess calibration of the postprocessed HRES forecast using data of next 4
+#' ## Assess forecast using data of next 2
 #' ## years and compare to calibration of the raw ensemble
 #'
-#' data <- rain[(4 * 365 + 1):(8 * 365), "HRES", drop = FALSE]
-#' obs <- rain[(4 * 365 + 1):(8 * 365), "obs"]
-#' predictions <- predict(fit, data = data)
-#' idrPit <- pit(predictions, obs, seed = 123)
+#' ytest = rain[(3 * 365 + 1):(5 * 365), "obs"]
+#' ensemble_test = rain[(3 * 365 + 1):(5 * 365), 3:54,drop = FALSE]
+#' predictions <- predict(fit, data = ensemble_test)
+#' idrPit <- pit(predictions, ytest, seed = 123)
 #'
-#' rawData <- rain[(4 * 365 + 1):(8 * 365), c("HRES", "CTR", paste0("P", 1:50))]
-#' rawPit <- pit(rawData, obs, seed = 123)
+#' rawData <- rain[(3 * 365 + 1):(5 * 365), c("HRES", "CTR", paste0("P", 1:50))]
+#' rawPit <- pit(rawData, ytest, seed = 123)
 #'
 #' hist(idrPit, xlab = "Probability Integral Transform",
-#'   ylab = "Density", freq = FALSE, main = "Postprocessed HRES")
+#'   ylab = "Density", freq = FALSE, main = "Calibrated ensemble")
 #' hist(rawPit, xlab = "Probability Integral Transform",
 #'   ylab = "Density", freq = FALSE, main = "Raw ensemble")
 pit <- function(predictions, y, randomize = TRUE, seed = NULL) {
@@ -508,7 +509,7 @@ pit <- function(predictions, y, randomize = TRUE, seed = NULL) {
 }
 
 
-#' pit method for class 'idrafsd'
+#' pit method for class 'idrsd'
 #'
 #' @method pit idrsd
 #' @rdname pit
@@ -585,13 +586,13 @@ pit.data.frame <- function(predictions, y, randomize = TRUE, seed = NULL) {
   pitVals
 }
 
-#' Plot IDR predictions
+#' Plot IDRsd predictions
 #'
-#' @description Plot an IDR predictive CDF.
+#' @description Plot an IDRsd predictive CDF.
 #'
 #' @method plot idrsd
 #'
-#' @param x object of class \code{idrafsd} (output of
+#' @param x object of class \code{idrsd} (output of
 #'   \code{\link{predict.idrcal}}).
 #' @param index index of the prediction in \code{x} for which a plot is desired.
 #' @param bounds whether the bounds should be plotted or not (see
@@ -619,16 +620,15 @@ pit.data.frame <- function(predictions, y, randomize = TRUE, seed = NULL) {
 #' data("rain")
 #' require("graphics")
 #'
-#' ## Postprocess HRES and CTR forecast using data of 2 years
 #'
-#' X <- rain[1:(2 * 365), c("HRES", "CTR"), drop = FALSE]
-#' y <- rain[1:(2 * 365), "obs"]
+#' ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
+#' y <- rain[1:(3 * 365), "obs"]
 #'
-#' ## Fit IDR and plot the predictive CDF when the HRES forecast is 1 mm and
-#' ## CTR is 0 mm
+#' ## Fit IDRsd and plot the predictive CDF
 #'
-#' fit <- idr(y = y, X = X)
-#' pred <- predict(fit, data = data.frame(HRES = 1, CTR = 0))
+#' fit <- idrsd(y = y, X = ensemble, type = 'ensemble')
+#' ensemble_test = rain[(3 * 365 + 1), 3:54,drop = FALSE]
+#' pred <- predict(fit, data = ensemble_test)
 #' plot(pred)
 plot.idrsd <- function(x, index = 1, bounds = TRUE, col.cdf = "black",
    col.bounds = "blue", lty.cdf = 1, lty.bounds = 3, xlab = "Threshold",
@@ -662,7 +662,7 @@ crps_unc <- function(obs){
   return(mean(crps_sample(obs, dat = obs_ensemble)))
 }
 
-# crps for ECDFs
+# CRPS for ECDFs
 crps_ecdf <- function(y, grid_vals, ecdf) {
 
   x <- lapply(seq_len(length(y)), function(i) grid_vals)
@@ -676,13 +676,21 @@ crps_ecdf <- function(y, grid_vals, ecdf) {
 #' CRPS decomposition
 #' @description Computes the individual components of the iso-based CRPS Decomposition: MSC, DSC and UNC
 #'
-#'
 #' @param y numeric vector (the response variable).
-#' @param X depends on \code{type}. For \code{type} = "ensemble", it is a numeric data frame with column number corresponding to ensemble size.
-#'     For \code{type = "idr"}, it is an IDR object from isodistrreg-package. For \code{type = "ecdf"}, X is a matrix or a list of ecdf values. For \code{type} = "dis", X is NULL. For \code{type} = "normal", X is NULL.
-#' @param grid if \code{type = "ecdf"}, than grid is a vector or a list of threshold values corresponding to ECDF-values in  \code{X}.
-#' @param dis_func if \code{type = "dis"}, then a cumulative distribution function must be specified and distributional parameters must be defined.
-#' @param type default is 'ensemble'. Other possibilities are 'idr', 'ecdf', 'dis' and 'normal
+#' @param X object that fits to specification in \code{type}. For \code{type = 'idr'}, \code{X} must be an IDR object,
+#' for \code{type = 'ensemble'}, \code{X} must be a data.frame where columns correspond to ensemble members, for \code{type = 'ecdf'}, \code{X} must be a \code{(n x m)} matrix
+#' with \code{n = length(y)} and \code{m = length(grid)}, where each row corresponds to ECDF values evaluated at \code{grid}.
+#' For \code{type = 'dis'} \code{X} is empty, for \code{type = 'normal'} and \code{type = 'normal_ab'} \code{X} is a matrix with 2 columns
+#' which represent mu and sigma parameters of the normal distribution.
+#' @param type default is \code{'ensemble'}. Other possibilities are \code{'idr'}, \code{'ecdf'}, \code{'dis'}, \code{'normal'}, \code{'normal_ab'}
+#' @param grid if \code{type == 'ecdf'}, than \code{grid} is vector of threshold values corresponding to ECDF-values in \code{X}
+#' @param dis_func if \code{type == 'dis'}, then a cumulative distribution function must be specified along with its distributional parameters.
+#' @param pars parameters for quadratic programming optimization (only relevant
+#'   if \code{X} has more than one column), set using
+#'   \code{\link[osqp]{osqpSettings}}.
+#' @param progress display progressbar (\code{TRUE}, \code{FALSE} or \code{1},
+#'   \code{0})?
+#'
 #' @details This function computed the CRPS decomposition of a response vector \emph{y} and a distributional forecast \emph{X}, which can be an ensemble and empirical cumulative distributional function,
 #' a normal distribution or any other other closed form CDF specified by its parameters.
 #'
@@ -693,7 +701,18 @@ crps_ecdf <- function(y, grid_vals, ecdf) {
 #'
 #' @export
 #' @examples
-#' Simulate data and apply crps_deco to all possible input types
+#'
+#'#' data("rain")
+#'
+#' ## IDRsd based on ensemble forecast
+#'
+#' ensemble <- rain[1:(3 * 365), 3:54, drop = FALSE]
+#' y <- rain[1:(3 * 365), "obs"]
+#'
+#' ## Compute CRPS decomposition components
+#' crps_deco <- isodeco_crps(y = y, X = ensemble, type = 'ensemble')
+#' print(crps_deco)
+#'
 #'
 isodeco_crps <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 'dis', 'ecdf', 'normal', 'idr', normal_ab
                       inta = NULL, intb = NULL,

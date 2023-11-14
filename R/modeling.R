@@ -1,4 +1,4 @@
-#' Fit IDR to training data
+#' Fit IDRsd to training data
 #'
 #' @description Fits isotonic distributional regression (IDR) to a training
 #'   dataset with respect to the stochastic order (SD) order.
@@ -7,13 +7,14 @@
 #'   1e-5, eps_rel = 1e-5, max_iter = 10000L), progress = TRUE)
 #'
 #' @param y numeric vector (the response variable).
-#' @param X object that fits to specification in \emph{type}. For \emph{type = 'idr'}, X must be an IDR object,
-#' for \emph{type = 'ensemble'}, X must be a data.frame, for \emph{type = 'ecdf'}, X must be a matrix,
-#' for \emph{type = 'dis'} X is empty, for \emph{type = 'normal'} and \emph{type = 'normal_ab'} X is a matrix with 2 columns
-#' which represent mu and sigma parameters of the normal distribution
-#' @param type default is 'ensemble'. Other possibilities are 'idr', 'ecdf', 'dis', 'normal', normal_ab
-#' @param grid if type == 'ecdf', than grid is vector of threshold values corresponding to ECDF-values in X
-#' @param dis_func if type == 'dis', then a cumulative distribution function must be specified along with its distributional parameters.
+#' @param X object that fits to specification in \code{type}. For \code{type = 'idr'}, \code{X} must be an IDR object,
+#' for \code{type = 'ensemble'}, \code{X} must be a data.frame where columns correspond to ensemble members, for \code{type = 'ecdf'}, \code{X} must be a \code{(n x m)} matrix
+#' with \code{n = length(y)} and \code{m = length(grid)}, where each row corresponds to ECDF values evaluated at \code{grid}.
+#' For \code{type = 'dis'} \code{X} is empty, for \code{type = 'normal'} and \code{type = 'normal_ab'} \code{X} is a matrix with 2 columns
+#' which represent mu and sigma parameters of the normal distribution.
+#' @param type default is \code{'ensemble'}. Other possibilities are \code{'idr'}, \code{'ecdf'}, \code{'dis'}, \code{'normal'}, \code{'normal_ab'}
+#' @param grid if \code{type == 'ecdf'}, than \code{grid} is vector of threshold values corresponding to ECDF-values in \code{X}
+#' @param dis_func if \code{type == 'dis'}, then a cumulative distribution function must be specified along with its distributional parameters.
 #' @param pars parameters for quadratic programming optimization (only relevant
 #'   if \code{X} has more than one column), set using
 #'   \code{\link[osqp]{osqpSettings}}.
@@ -21,9 +22,9 @@
 #'   \code{0})?
 #'
 #' @details This function computes the isotonic distributional regression (IDR)
-#'   of a response \emph{y} on distributional data \emph{X}. IDR estimates
-#'   the cumulative distribution function (CDF) of \emph{y} conditional on
-#'   \emph{X} under the assumption of isotonicity. The odering on \emph{X}
+#'   of a response \code{y} on distributional data \code{X} using stochastic order.
+#'   IDRsd estimates the cumulative distribution function (CDF) of \code{y} conditional on
+#'   \code{X} under the assumption of isotonicity. The odering on \code{X}
 #'   is computed using the stochastic order.
 #'   The conditional CDFs are estimated at each threshold in \code{unique(y)}.
 #'   This is the set where the CDFs may have jumps.
@@ -168,8 +169,6 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
       stop("length(y) and nrow(X) must match")
     if (!all(X[, 2]>=0))
       stop("sigma bust be positive")
-    #if (eps == 'sd')
-    #  stop("'eps = sd' not yet implemented for type = normal")
     if (org_crps) {
       original_crps <- mean(crps_norm(y, X[,1], X[,2]))
     }
@@ -206,8 +205,7 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
     if (org_crps) {
       original_crps <- mean(crps_cnorm(y, X[,1], X[,2], lower = inta, upper = intb))
     }
-    #if (eps == 'sd')
-    #  stop("'eps = sd' not yet implemented for type = normal")
+
     x <- data.frame(y = y, ind = seq_along(y))
     X <- stats::aggregate(x = x, by = data.frame(X), FUN = identity, simplify = FALSE)
     cpY <- X[["y"]]
@@ -221,8 +219,7 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
   } else if (type == 'dis') {
     z <- list(...)
     para_dim <- length(z)
-    #if ( eps == 'sd')
-     # stop("'eps = sd' not yet implemented")
+
     if (para_dim == 0)
       stop("arguments for dis_func must be non empty")
     #if (!all(sapply(z, function(x) length(x) == length(y))))
@@ -329,11 +326,6 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
     } else {
       X <- X[vec_indx, ]
     }
-    #print(weights)
-    #X <- data.matrix(X2[, c(1, 2)], rownames.force = NA)
-    #constr <- normal_comp(X, eps)
-    #weights <- sapply(indices, length)
-    #N <- nrow(X)
 
     # List X and List grid
 
@@ -413,13 +405,13 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
 }
 
 
-#' Predict method for IDR fits
+#' Predict method for IDRsd fits
 #'
-#' @description Prediction based on IDR model fit.
+#' @description Prediction based on IDRsd model fit.
 #'
 #' @method predict idrcal
 #'
-#' @param object IDR fit (object of class \code{"idrcal"}).
+#' @param object IDRsd fit (object of class \code{"idrcal"}).
 #' @param data optional object with which to
 #'   predict. In-sample predictions are returned if this is omitted.
 #' @param digits number of decimal places for the predictive CDF.
@@ -451,7 +443,7 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
 #' @importFrom stats approx
 #'
 #' @seealso
-#' \code{\link{idrsd}} to fit IDR to training data.
+#' \code{\link{idrsd}} to fit IDRsd to training data.
 #'
 #' \code{\link{cdf}}, \code{\link{qpred}} to evaluate the CDF or quantile
 #' function of IDR predictions.
@@ -553,10 +545,7 @@ predict.idrcal <- function(object, data = NULL, grid = NULL, digits = 3,
   }
 
   else if (type == 'normal'){
-    #if (eps == 'sd') {
-    #  stop("'eps = sd' not yet implemented for type = normal")
-    #}
-    #else {
+
     nPoints <- neighborPoints_norm(x = data, X = X, Ord = object$Ord)
     nx <- nrow(data)
     #}

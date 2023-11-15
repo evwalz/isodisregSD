@@ -293,8 +293,7 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
       }
     }
     if (is.list(grid)){
-      #M_class <- ecdf_list_comp_class_sd(X, grid)
-      stop("'grid' must be a vector")
+      M_class <- ecdf_list_comp_class_sd(X, grid)
     } else {
       M_class <- ecdf_comp_class_sd(X, grid)
     }
@@ -544,7 +543,7 @@ predict.idrcal <- function(object, data = NULL, grid = NULL, digits = 3,
     nx <- nrow(data)
   }
 
-  else if (type == 'normal'){
+  else if (type == 'normal' || type == 'normal_ab'){
 
     nPoints <- neighborPoints_norm(x = data, X = X, Ord = object$Ord)
     nx <- nrow(data)

@@ -730,7 +730,7 @@ isodeco_crps <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemb
 
   crps_original <- cali_idr$org_crps
 
-  return(list('MSC' = crps_original - cali_crps, 'DSC' =  uncertainty - cali_crps, 'UNC' = uncertainty, 'CRPS' = crps_original))
+  return(list('MCB' = crps_original - cali_crps, 'DSC' =  uncertainty - cali_crps, 'UNC' = uncertainty, 'CRPS' = crps_original))
 }
 
 

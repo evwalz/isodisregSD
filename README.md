@@ -4,7 +4,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-Applies isotonic distributional regression [IDR](https://academic.oup.com/jrsssb/article/83/5/963/7056107) for data consisiting of real-valued responses and correspoding probabilistic forecasts
+Applies isotonic distributional regression ([IDR])(https://academic.oup.com/jrsssb/article/83/5/963/7056107) for data consisiting of real-valued responses and correspoding probabilistic forecasts
 
 ## Installation
 

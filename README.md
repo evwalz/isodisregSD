@@ -23,10 +23,5 @@ install_github("evwalz/isodisregSD")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(isodisregSD)
-## basic example code
-```
+See https://github.com/evwalz/paper_isocrpsdeco
 

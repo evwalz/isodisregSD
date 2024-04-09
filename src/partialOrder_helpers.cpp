@@ -37,7 +37,7 @@ NumericMatrix new_func_sd(NumericMatrix X) {
             F1 = F1 / ((double) nobs);
             F2 = F2 / ((double) nobs);
             int test = 1;
-            for (int k = 0; k< (nobs-1); k++) {
+            for (int k = 0; k< (nobs); k++) {
                 if (F2[k] > F1[k]) {
                     test = 0;
                 }
@@ -47,7 +47,7 @@ NumericMatrix new_func_sd(NumericMatrix X) {
             }
             if (M(i, j) == 0) {
                 int test2 = 1;
-                for (int k = 0; k< (nobs-1); k++) {
+                for (int k = 0; k< (nobs); k++) {
                     if (F1[k] > F2[k]) {
                         test2 = 0;
                     }
@@ -377,7 +377,7 @@ List new_func2_sd(NumericMatrix X, NumericMatrix x) {
             F1 = F1 / ((double) nobs);
             F2 = F2 / ((double) nobs);
             int test = 1;
-            for (int k = 0; k< (nobs-1); k++) {
+            for (int k = 0; k< (nobs); k++) {
 
                 if (F2[k] > F1[k]) {
                     test = 0;
@@ -388,7 +388,7 @@ List new_func2_sd(NumericMatrix X, NumericMatrix x) {
             }
 
             int test2 = 1;
-            for (int k = 0; k< (nobs-1); k++) {
+            for (int k = 0; k< (nobs); k++) {
                 if (F1[k] > F2[k]) {
                     test2 = 0;
                 }
@@ -1105,7 +1105,7 @@ NumericMatrix ecdf_comp_sd(NumericMatrix X, NumericVector t) {
             }
 
             int test = 1;
-            for (int k = 0; k< (d-1); k++) {
+            for (int k = 0; k< (d); k++) {
 
                 if (F2[k] > F1[k]) {
                     test  = 0;
@@ -1118,7 +1118,7 @@ NumericMatrix ecdf_comp_sd(NumericMatrix X, NumericVector t) {
 
             if (M(i, j) == 0) {
                 int test2 = 1;
-                for (int k = 0; k< (d-1); k++) {
+                for (int k = 0; k< (d); k++) {
 
                     if (F1[k] > F2[k]) {
                         test2 = 0;

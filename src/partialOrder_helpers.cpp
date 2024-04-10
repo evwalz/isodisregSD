@@ -34,8 +34,8 @@ NumericMatrix new_func_sd(NumericMatrix X) {
                 F2[l] =  (std::upper_bound(x2.begin(), x2.end(), vec[l]) - x2.begin());
             }
 
-            F1 = F1 / ((double) nobs);
-            F2 = F2 / ((double) nobs);
+            F1 = F1 / ((double) d);
+            F2 = F2 / ((double) d);
             int test = 1;
             for (int k = 0; k< (nobs); k++) {
                 if (F2[k] > F1[k]) {

@@ -253,7 +253,7 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
     }
 
     if (org_crps) {
-      original_crps <- mean(ecdf_crps(y, grid, X))
+      original_crps <- mean(crps_ecdf(y, grid, X))
     }
 
     # ECDF in X with grid
@@ -289,7 +289,7 @@ idrsd <- function(y, X=NULL, grid = NULL, dis_func = NULL, type = 'ensemble', # 
 
     if (org_crps) {
       if (type == 'ecdf'){
-        original_crps <- mean(ecdf_crps(y, grid, X))
+        original_crps <- mean(crps_ecdf(y, grid, X))
       }
     }
     if (is.list(grid)){
